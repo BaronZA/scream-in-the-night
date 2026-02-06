@@ -3,6 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Scream DM">
     <title>A Scream in the Night - DM Companion</title>
     <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
@@ -19,7 +23,22 @@
 <body>
     <div id="root"></div>
     <script type="text/babel">
-        const { useState, useEffect } = React;
+        const { useState, useEffect, useCallback } = React;
+
+        // localStorage persistence
+        const SAVE_KEY = 'scream-dm-companion';
+        const saveState = (state) => {
+          try { localStorage.setItem(SAVE_KEY, JSON.stringify(state)); } catch(e) {}
+        };
+        const loadState = () => {
+          try {
+            const saved = localStorage.getItem(SAVE_KEY);
+            return saved ? JSON.parse(saved) : null;
+          } catch(e) { return null; }
+        };
+        const clearState = () => {
+          try { localStorage.removeItem(SAVE_KEY); } catch(e) {}
+        };
 
         const Icon = ({ d }) => (
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -560,13 +579,19 @@
         };
 
         const DMCompanion = () => {
-          const [slide, setSlide] = useState(0);
-          const [hp, setHp] = useState({});
-          const [notes, setNotes] = useState({ boltac: null, zellani: null, moments: [] });
+          const saved = loadState();
+          const [slide, setSlide] = useState(saved?.slide || 0);
+          const [hp, setHp] = useState(saved?.hp || {});
+          const [notes, setNotes] = useState(saved?.notes || { boltac: null, zellani: null, moments: [] });
           const [noteText, setNoteText] = useState('');
           const [showCombat, setShowCombat] = useState(false);
 
           const current = CAMPAIGN_DATA.slides[slide];
+
+          // Auto-save all tracked state whenever it changes
+          useEffect(() => {
+            saveState({ slide, hp, notes });
+          }, [slide, hp, notes]);
 
           useEffect(() => {
             if (current.type === 'combat') {
@@ -592,6 +617,17 @@
             if (!noteText.trim()) return;
             setNotes(prev => ({...prev, moments: [...prev.moments, {time: new Date().toLocaleTimeString(), text: noteText}]}));
             setNoteText('');
+          };
+
+          const resetSession = () => {
+            if (confirm('Reset all session data? This clears HP, notes, and slide position.')) {
+              clearState();
+              setSlide(0);
+              setHp({});
+              setNotes({ boltac: null, zellani: null, moments: [] });
+              setNoteText('');
+              setShowCombat(false);
+            }
           };
 
           // Render the rich content sections for any slide
@@ -699,12 +735,21 @@
                       <h1 className="text-4xl font-bold text-amber-400 font-display">A Scream in the Night</h1>
                       <p className="text-amber-300/70 text-sm mt-1">DM Companion &bull; Slide {slide+1} of {CAMPAIGN_DATA.slides.length}</p>
                     </div>
-                    {current.time && (
-                      <div className="bg-purple-900/60 px-5 py-2 rounded-lg border border-purple-500/40 flex items-center gap-2">
-                        <Icon d="M12 2v4m0 12v4m8.66-14.66l-2.83 2.83M6.17 17.83l-2.83 2.83M22 12h-4M6 12H2m16.66 6.66l-2.83-2.83M6.17 6.17L3.34 3.34"/>
-                        <span className="text-purple-200 font-semibold">{current.time}</span>
-                      </div>
-                    )}
+                    <div className="flex items-center gap-3">
+                      {current.time && (
+                        <div className="bg-purple-900/60 px-5 py-2 rounded-lg border border-purple-500/40 flex items-center gap-2">
+                          <Icon d="M12 2v4m0 12v4m8.66-14.66l-2.83 2.83M6.17 17.83l-2.83 2.83M22 12h-4M6 12H2m16.66 6.66l-2.83-2.83M6.17 6.17L3.34 3.34"/>
+                          <span className="text-purple-200 font-semibold">{current.time}</span>
+                        </div>
+                      )}
+                      <button
+                        onClick={resetSession}
+                        className="bg-slate-800/60 hover:bg-red-900/60 px-3 py-2 rounded-lg border border-slate-600/40 hover:border-red-500/40 text-slate-400 hover:text-red-300 text-xs transition-all"
+                        title="Reset all session data"
+                      >
+                        New Session
+                      </button>
+                    </div>
                   </div>
                 </div>
               </header>
