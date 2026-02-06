@@ -1,0 +1,926 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>A Scream in the Night - DM Companion</title>
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;900&family=Crimson+Text:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Crimson Text', serif; margin: 0; }
+        .font-display { font-family: 'Cinzel', serif; letter-spacing: 0.05em; }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+
+        const Icon = ({ d }) => (
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d={d}/>
+            </svg>
+        );
+
+        const ChevronDown = () => (
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="m6 9 6 6 6-6"/>
+            </svg>
+        );
+
+        const ChevronRight = () => (
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="m9 18 6-6-6-6"/>
+            </svg>
+        );
+
+        // Collapsible Section Component
+        const Section = ({ title, icon, color, children, defaultOpen }) => {
+            const [open, setOpen] = useState(defaultOpen || false);
+            const colors = {
+                amber: 'border-amber-600/50 bg-amber-950/30',
+                green: 'border-green-600/50 bg-green-950/30',
+                blue: 'border-blue-600/50 bg-blue-950/30',
+                purple: 'border-purple-600/50 bg-purple-950/30',
+                slate: 'border-slate-500/50 bg-slate-800/30',
+                red: 'border-red-600/50 bg-red-950/30',
+                teal: 'border-teal-600/50 bg-teal-950/30',
+                cyan: 'border-cyan-600/50 bg-cyan-950/30'
+            };
+            const headerColors = {
+                amber: 'text-amber-300',
+                green: 'text-green-300',
+                blue: 'text-blue-300',
+                purple: 'text-purple-300',
+                slate: 'text-slate-300',
+                red: 'text-red-300',
+                teal: 'text-teal-300',
+                cyan: 'text-cyan-300'
+            };
+            return (
+                <div className={`border-2 rounded-lg overflow-hidden ${colors[color]} mt-3`}>
+                    <button
+                        onClick={() => setOpen(!open)}
+                        className="w-full px-4 py-3 flex items-center justify-between hover:bg-white/5 transition-colors"
+                    >
+                        <span className={`font-semibold font-display text-sm uppercase tracking-wider flex items-center gap-2 ${headerColors[color]}`}>
+                            {icon} {title}
+                        </span>
+                        {open ? <ChevronDown /> : <ChevronRight />}
+                    </button>
+                    {open && <div className="px-4 pb-4 pt-1">{children}</div>}
+                </div>
+            );
+        };
+
+        // Read-Aloud Block Component
+        const ReadAloud = ({ texts }) => (
+            <div className="space-y-3">
+                {texts.map((text, i) => (
+                    <div key={i} className="bg-amber-900/40 border-l-4 border-amber-400 p-4 rounded-r-lg italic text-amber-100/90 text-base leading-relaxed">
+                        {text}
+                    </div>
+                ))}
+            </div>
+        );
+
+        // NPC Roleplay Card
+        const NPCCard = ({ npc }) => (
+            <div className="bg-green-950/40 border border-green-600/40 rounded-lg p-4 mb-3">
+                <div className="flex justify-between items-start mb-2">
+                    <h4 className="text-lg font-bold text-green-300 font-display">{npc.name}</h4>
+                    {npc.race && <span className="text-green-400/70 text-xs uppercase tracking-wider">{npc.race}</span>}
+                </div>
+                {npc.appearance && <p className="text-green-100/80 text-sm mb-2">{npc.appearance}</p>}
+                {npc.personality && <p className="text-green-100/70 text-sm mb-2">{npc.personality}</p>}
+                {npc.quote && (
+                    <div className="bg-green-900/40 border-l-4 border-green-400 p-3 rounded-r italic text-green-200 text-sm mt-2">
+                        "{npc.quote}"
+                    </div>
+                )}
+            </div>
+        );
+
+        // Mechanic/DC Item
+        const MechanicItem = ({ item }) => (
+            <div className="bg-blue-950/40 border border-blue-600/30 rounded-lg p-3 mb-2">
+                <h4 className="text-sm font-bold text-blue-300 mb-1">{item.title}</h4>
+                <p className="text-blue-100/80 text-sm">{item.details}</p>
+            </div>
+        );
+
+        // FAQ Item
+        const FAQItem = ({ item }) => {
+            const [open, setOpen] = useState(false);
+            return (
+                <div className="bg-slate-800/40 border border-slate-600/30 rounded-lg mb-2">
+                    <button onClick={() => setOpen(!open)} className="w-full px-3 py-2 flex items-center justify-between text-left hover:bg-white/5">
+                        <span className="text-slate-200 text-sm font-semibold">{item.q}</span>
+                        {open ? <ChevronDown /> : <ChevronRight />}
+                    </button>
+                    {open && <p className="px-3 pb-3 text-slate-300/80 text-sm">{item.a}</p>}
+                </div>
+            );
+        };
+
+        const CAMPAIGN_DATA = {
+          slides: [
+            {
+              id: 'intro', title: 'Session Start', type: 'intro',
+              description: 'Welcome your players and set the stage for a night of mystery and murder in the city of Melvaunt.',
+              readAloud: [
+                'Melvaunt is a city of merchants and metalsmiths on the northern coast of the Moonsea. The docks are constantly filled with ships from Hillsfar, Mulmaster, and more distant ports. The northern coast of the Moonsea is an inhospitable place, and its people have a reputation for being rough and unfriendly. But they don\'t go around murdering one another in the streets. At least, not usually.'
+              ],
+              roleplay: [
+                {
+                  name: 'C1e7i5 ("Cletis")',
+                  race: 'Rogue Quadrone Modron',
+                  appearance: 'A cube-shaped body about the size of a man\'s torso with a face on the front. Bipedal with skinny, elongated arms and legs. Metallic skin. Wears a cloak and hood to move unnoticed at night.',
+                  personality: 'Corrupted by chaos energy but still bound to logical, orderly ways. It has independently decided to start a war between Mechanus and Melvaunt by luring armed pursuers through a portal. It kills according to a precise timetable and leaves puzzle-clues because its modron instincts demand order even in murder.',
+                  quote: 'Very well.'
+                }
+              ],
+              mechanics: [
+                { title: 'Adventure Duration', details: '3-4 hours. The killer\'s timeline is unforgiving - murders happen every hour on the hour (8, 9, and 10 bells).' },
+                { title: 'Party Strength (6 players, Level 1)', details: 'STRONG party. 6-7 characters at APL equivalent = Strong. Use Strong party adjustments for all encounters.' },
+                { title: 'Key Theme', details: 'C1e7i5 WANTS to be followed. It leaves clues on purpose. It wants to lure pursuers through the portal to Mechanus to start a war. The modron will always escape - the goal is saving victims and gathering evidence.' }
+              ],
+              dmTips: [
+                'Collect character info before starting: name, level, race, class, passive Perception, notable backgrounds/traits/flaws.',
+                'The killer is a MODRON - a construct of absolute law corrupted by chaos. Players should NOT know this until the finale. Keep the killer mysterious.',
+                'Pacing is critical. The clock tower bells are your friend - use them to build tension. Each bell marks the passage of time.',
+                'If players have played CORE 1-2 or 1-3 already, take them aside and ask them not to spoil that the killer is a modron.',
+                'You can have character introductions either in the tavern at the start, or after Encounter 1 - whichever feels more natural for pacing.'
+              ],
+              faq: [
+                { q: 'What if a player insists their character wouldn\'t be in a seedy tavern?', a: 'That character happens to be walking down the street when everyone else exits the Winking Narwhal. Once the adventure starts, things move quickly and there\'s no time to fetch characters from elsewhere.' },
+                { q: 'Can characters take a short rest between encounters?', a: 'A short rest takes 1 hour - they don\'t have that kind of time. The next murder is always less than an hour away. Sergeant Eledstra may offer 2 potions of healing if the party is trustworthy.' },
+                { q: 'What if the players completely fail the puzzles?', a: 'Use "Failing Forward" - characters hear about subsequent murders shortly after they happen and go to the crime scenes. The trail of breadcrumbs continues because C1e7i5 WANTS to be followed.' },
+                { q: 'How do I handle the adventure hooks?', a: 'There are several options: sellsword work, rare item shopping, visiting blacksmiths, seeking refugees from troubled cities, or faction business. Let players pick what fits their character.' }
+              ]
+            },
+            {
+              id: 'opening', title: 'Opening - Winking Narwhal', type: 'narrative', time: '7:45 PM',
+              description: 'The characters exit the tavern and hear sounds of a brawl in a nearby alley. This is a distraction set up by C1e7i5 to cover its first murder.',
+              readAloud: [
+                'Although the sailors and dockworkers crowding the Winking Narwhal will no doubt continue carousing into the wee hours, just before eight bells is your stopping time for this evening. You\'ve heard enough drunken rumors about sea monsters in the Moonsea, orc armies approaching the city gates, and giants killing merchants along the Phlan Path.',
+                'As you exit the tavern, the stench of stale beer and sweaty bodies is replaced by the scent of burning coal and scorched metal. They say that the forge-fires of Melvaunt never stop burning, and the local atmosphere is proof enough of that. The stars are faintly visible in the night sky thanks to the haze that shrouds the city.',
+                'No matter what business you were planning to be about, you can\'t help but overhear the distinctive sounds of a brawl coming from the nearby alley behind the tavern.'
+              ],
+              mechanics: [
+                { title: 'Brawlers', details: 'Half-dozen drunkards. AC 10, knocked unconscious with 1 point of damage, disadvantage on all saving throws (intoxicated). They do NOT attack the adventurers.' },
+                { title: 'DC 13 Perception', details: 'Notice a torn purse and scattered gold/silver coins in the muck. C1e7i5 dropped these from above to create the distraction.' },
+                { title: 'Layout', details: 'The alley entrance is ~30 feet from the tavern door. The brawl is in Alley A. The murder happens in the opposite alley across the street (Area C).' }
+              ],
+              dmTips: [
+                'Don\'t let the brawl scene take too long - it\'s just a distraction. Give players 1-2 rounds to settle things.',
+                'Some characters may want to investigate the brawl, others may ignore it. Characters who don\'t go to the alley start closer to the murder scene (Area B).',
+                'The money fell from the sky (C1e7i5 can fly). Nobody saw anything. No one has reason to look up.',
+                'Just when the players think the excitement is over - that\'s when you hit them with the SCREAM.'
+              ],
+              faq: [
+                { q: 'What if the players ignore the brawl entirely?', a: 'That\'s fine! They\'ll be closer to the murder scene when the scream happens. Characters who skipped the brawl start in Area B on the map.' },
+                { q: 'What if the players kill the drunkards?', a: 'The module notes "if any of the adventurers decide to become a mass murderer at this point, it almost doesn\'t matter what C1e7i5 does after that." Presumably they\'ll subdue nonlethally.' }
+              ]
+            },
+            {
+              id: 'enc1', title: 'Enc 1: Caltrops Fight', type: 'combat', time: '8:00 PM',
+              enemies: [{name:'Caltrop Swarm', count:5, hp:22, ac:14}],
+              description: 'The clock strikes 8 bells and a scream rings out. C1e7i5 has killed a dockworker and left animated caltrops as a trap. The modron watches from the rooftop.',
+              readAloud: [
+                'The elaborate mechanical clock tower near the temple of Gond is audible from most places in the city. Right on cue, it begins to chime eight bells. As the final peal fades into silence, you hear a scream from the opposite side of the street.',
+                'Very little natural light makes it into this narrow passageway. A heavyset man dressed in the clothes of a laborer lies face-down in the middle of the alley. A dagger is buried up to the hilt in the man\'s back and blood rapidly pools beneath his body.',
+                'The tiny caltrops scattered around the alley begin to vibrate. Suddenly, they fly up into the air, forming deadly swarms of sharpened metal!'
+              ],
+              mechanics: [
+                { title: 'DC 10 Medicine (darkvision or adjacent)', details: 'The man is dead. Blood pooling suggests the killing blow was struck within the last minute.' },
+                { title: 'DC 15 Medicine', details: 'The killer turned the dagger so the victim could cry out before dying. The killer WANTED someone to hear that scream.' },
+                { title: 'DC 13 Perception (darkvision/low-light)', details: 'Notice the faint glint of caltrops scattered around the body BEFORE stepping on them.' },
+                { title: 'DC 15 Dex Save (caltrops)', details: 'Moving into the caltrop area without knowing, or at greater than half speed. Fail = stop moving, take 1 piercing, speed reduced by 10ft until healed.' },
+                { title: 'Surprise Round', details: 'If characters did NOT notice the caltrops before triggering combat, the swarms SURPRISE them.' },
+                { title: 'The Dagger Note', details: 'The dagger is stabbed so hard only the hilt is visible. A folded piece of paper is pinned to the victim\'s back by the weapon. Give players Handout 1.' },
+                { title: 'C1e7i5 Detection: Passive Perception 21+', details: 'Only way to notice the small dark shape that briefly flits overhead. Even then, caltrops demand attention. There is NO way to interact with the modron at this stage.' }
+              ],
+              dmTips: [
+                'DM PERFORMANCE TIP: Chime the 8 bells yourself slowly and monotonously (BONG... BONG... BONG... x8) then SCREAM! Lull them into boredom then shock them.',
+                'Strong party (6 players): Use 5 swarms (already set). Very strong: Also increase swarm damage from 5 (2d4) to 10 (4d4) and they deal full damage even below half HP.',
+                'Swarms have damage RESISTANCE to bludgeoning, piercing, slashing. This can be rough for level 1s. If the party lacks sources of full damage, consider using the Weak party adjustment (reduce HP from 22 to 15).',
+                'A character can clear a 5-foot square of caltrops as an action. A character aware of caltrops can move through at half speed without the saving throw.',
+                'After defeating the caltrops, characters can examine the body. The murder weapon is an ordinary dagger with no distinctive marks.'
+              ],
+              faq: [
+                { q: 'Can the players chase C1e7i5?', a: 'No. The modron flies away silently once the caltrops activate. Even if noticed (Passive 21+), the caltrops demand attention. C1e7i5 is long gone.' },
+                { q: 'What clues can they find on the body?', a: 'Human male, mid-20s, dockworker. Killed by single knife thrust from behind, taken completely by surprise. The key evidence is the NOTE pinned under the dagger.' },
+                { q: 'What if nobody pulls the dagger to find the note?', a: 'Sergeant Eledstra arrives shortly and pulls it herself if the players didn\'t. She admonishes them gently about disturbing evidence but is more interested in the note.' }
+              ]
+            },
+            {
+              id: 'enc2', title: 'Enc 2: First Murder', type: 'investigation', time: '8:00 PM',
+              description: 'Sergeant Eledstra arrives with guards. The characters must explain themselves, compare notes with Eledstra, and decipher the puzzle to find the next victim.',
+              readAloud: [
+                'You hear the shrill noise of a watchman\'s whistle and the sound of booted feet clomping on the cobblestones. A detachment of city watch surrounds the alley at both ends, their halberds crossed to prevent you from leaving.',
+                'An older woman in the uniform of an officer steps carefully into the alley, avoiding the blood and the caltrops. She studies the area with keen blue eyes and runs a hand through her unruly white hair. "Hmm, well, now, what do we have here," she murmurs, as if to herself. "It seems that note was telling the truth after all. But we didn\'t get here by eight bells. Missed our appointment for murder! I\'d have expected the killer to be long gone. And yet..."',
+                'She looks expectantly at you, awaiting an explanation.'
+              ],
+              roleplay: [
+                {
+                  name: 'Sergeant Eledstra',
+                  race: 'Human (late middle age)',
+                  appearance: 'Tall, thin, and lanky with a shock of unruly white hair that she runs her fingers through constantly when thinking. Keen blue eyes.',
+                  personality: 'A decent woman who takes her job of protecting ordinary citizens seriously. Very bad at political games (why she\'s only a Sergeant despite years of service). Has +8 Wisdom (Insight). Makes a show of writing down everything the characters say.',
+                  quote: 'You know, in another life, you\'d have made an excellent criminal.'
+                }
+              ],
+              mechanics: [
+                { title: 'Eledstra\'s Information', details: 'A note was delivered to the Watch station earlier tonight. It contained a rambling discourse threatening murder. Hidden message in capitalized letters spelled "EIGHT BELLS BY NARWHAL." She raced here but arrived too late.' },
+                { title: 'Puzzle 1 Solution: The Bloody Note', details: 'First letters of each sentence spell: TURN NUMBERS. Last letters spell: INTO LETTERS. Numerals in order: 1,4,1,13,1,14,20,9,14,5 = ADAMANTINE. Hidden number words: 2,12,1,3,11,19,13,9,20,8 = BLACKSMITH. Answer: The next victim is an adamantine blacksmith (male dwarf).' },
+                { title: 'If Players Get Stuck on Puzzle', details: 'Use Intelligence (Investigation) or Wisdom (Insight) checks to give hints. Eledstra can help solve it. Even partial solution (just ADAMANTINE) gives enough info to proceed - they\'ll just have a harder time.' },
+                { title: 'Deputization', details: 'If characters offer to investigate, Eledstra deputizes them for the evening and gives them a written writ of authority. This writ is useful later for convincing NPCs.' },
+                { title: 'Potions of Healing', details: 'If the characters didn\'t try to lie to Eledstra and she believes them trustworthy, she offers 2 potions of healing from her patrol supplies.' },
+                { title: 'Time Pressure', details: 'No time for a short rest! Next murder is at 9 bells. Eledstra sends them to the marketplace at the center of town - the only place to find adamantine at this hour.' }
+              ],
+              dmTips: [
+                'The characters should NOT have a difficult time explaining themselves. Eledstra is a veteran investigator. Evidence on the scene supports their story, and drunk sailors can provide alibi.',
+                'Let the players work on the puzzle, but don\'t let it stall the session. Use NPCs to give hints, not answers. If truly stuck, use "Failing Forward" - they\'ll hear about the next murder after it happens.',
+                'Eledstra should feel like an ally, not an obstacle. She\'s genuinely grateful for help and feels guilty about not getting here in time.',
+                'The Watch offers normal pay plus hazard stipend, and Eledstra promises a commendation by the Council of Lords if they prevent more murders.'
+              ],
+              faq: [
+                { q: 'What if the players lie to Eledstra?', a: 'She has +8 Wisdom (Insight). Lying is a bad idea. If they lie successfully, she won\'t offer the potions of healing and may be more suspicious going forward.' },
+                { q: 'What if a player solves the puzzle instantly?', a: 'Great! When they show Eledstra the answer, she congratulates them and says they\'re clearly the right people for the job, then sends them on their way.' },
+                { q: 'Can they go back to the tavern for supplies?', a: 'There\'s no time! The next murder is at 9 bells. The clock is already past 8.' },
+                { q: 'What about the dead body?', a: 'Eledstra and her guards will handle the scene. The characters need to focus on preventing the next murder.' }
+              ]
+            },
+            {
+              id: 'travel1', title: 'Travel to Marketplace', type: 'narrative', time: '8:30 PM',
+              description: 'The characters travel to the marketplace to find the next victim - a dwarven adamantine blacksmith named Boltac. They arrive ~15 minutes before 9 bells and must search quickly.',
+              readAloud: [
+                'It takes about twenty minutes for you to make your way from the docks to the large marketplace in the center of Melvaunt. Although the hour is late and many stalls have closed for the night, the plaza is far from deserted: you see plenty of buyers and sellers haggling over an impressive variety of goods and services. Unfortunately, there\'s no time for shopping. You have to locate the killer\'s next target.'
+              ],
+              mechanics: [
+                { title: 'The Search (each player makes a check)', details: 'Ask each player what their character does to search. Base DC is 15. Grant +5 bonus if the player makes a convincing argument using clues about the victim (dwarf, adamantine, blacksmith). Two characters doing the same thing = single check with advantage but fewer total checks.' },
+                { title: 'Skill Check Options', details: 'Investigation or Perception (look for the person), Intimidation or Persuasion (ask vendors/customers), Investigation or Insight (study marketplace layout - smoke from forges, metalwork shops), Athletics or Performance (cause a commotion to draw attention).' },
+                { title: 'Option 1: Found Him! (majority succeed)', details: 'Whichever character/team got highest result finds Boltac a few minutes before 9 bells. Time to talk and set up defensive positions. All characters start in Area A.' },
+                { title: 'Option 2: Last-Second Save (some succeed)', details: 'Find Boltac mere seconds before 9 bells. Only a few words to explain. Boltac + finders start in Area A, other successes in Area B, failures in Area C.' },
+                { title: 'Option 3: Too Late (none succeed)', details: 'Don\'t find Boltac before 9 bells. Boltac starts in Area A alone. Successes in Area B, failures in Area C.' }
+              ],
+              dmTips: [
+                'The slave market ("livestock pen") is currently closed, so the marketplace only has goods traders - this makes the search somewhat easier.',
+                'Let players be creative with their searches. The +5 bonus for using victim info rewards players who paid attention to the puzzle.',
+                'If two characters team up on the same approach, they get advantage but reduce total number of checks - this could backfire if the party needs multiple successes.',
+                'The positioning outcomes (Options 1-3) determine starting positions for the combat encounter and whether players can talk to Boltac beforehand.'
+              ],
+              faq: [
+                { q: 'Can they just shout "Is there an adamantine blacksmith here?"', a: 'That could work as a Charisma (Performance or Persuasion) check at DC 15. If they use specific clues like "dwarven adamantine blacksmith," give the +5 bonus (DC 10).' },
+                { q: 'How much time do they have?', a: 'They arrive about 15 minutes before 9 bells. Not enough for an exhaustive search, but enough to be smart about it. Each check represents a different approach to searching.' }
+              ]
+            },
+            {
+              id: 'enc3', title: 'Enc 3: Save Boltac', type: 'combat', time: '9:00 PM',
+              enemies: [{name:'Gondsman', count:8, hp:22, ac:13}, {name:'C1e7i5', count:1, hp:49, ac:16}],
+              npcs: [{name:'Boltac', hp:22, ac:13}],
+              description: 'C1e7i5 takes control of a gnomish tinkerer\'s Gondsmen constructs to attack Boltac while preparing a crossbow shot. The characters must protect the dwarf and fight the constructs.',
+              readAloud: [
+                'One of the stalls near Boltac is filled with what look like four-foot-tall mechanical men. Gears clank and servos whir as they walk to and fro. "Gondsmen, get your Gondsmen," calls out the proprietor, a female gnome with bright red hair wearing a holy symbol of Gond. "They can lift, they can fetch, they never get tired, and they don\'t eat! The perfect domestic servants!"',
+                'A puff of blue smoke comes out of the back of one of the golems. It topples over on its side, seemingly inert. "Oh, buckets," says the gnome. "Not in front of the customers! Gondsman five, reset!" The creature glows briefly and lurches back to life.',
+                'The newly-rejuvenated golem does not return to its previous duties, however. Instead, it lurches forward, crashing through the thin wooden panel separating the gnome\'s stall from Boltac\'s. "Hey, it\'s not supposed to do that! Gondsman five, I said RESET!" Suddenly, ALL the remaining constructs begin to glow with the same reddish light, and they too lurch forward. Every single one of them is headed directly for the dwarf.'
+              ],
+              roleplay: [
+                {
+                  name: 'Boltac Thurdingard',
+                  race: 'Dwarf (late middle age)',
+                  appearance: 'Obviously getting on in years but still strong enough to stand in a hot forge all day. Arranged on his table are a number of adamantine weapons.',
+                  personality: 'Cantankerous even by dwarven standards, but fiercely loyal once you earn his respect. Unmatched knowledge of adamantine. Secretly prefers wine to ale but would never admit it - claims "using elven wine to quench hot steel is a special technique only he has mastered."',
+                  quote: 'Don\'t make me give you a live demonstration of my wares! There\'s no discount for your medical expenses.'
+                },
+                {
+                  name: 'Ellywicket "Elly" Klemwocket',
+                  race: 'Gnome (young)',
+                  appearance: 'Bright red hair. Wears a holy symbol of Gond. Proprietor of the Gondsmen stall.',
+                  personality: 'A bright young priestess of Gond who got her love of tinkering from her adventurer uncle Glimnock. Very proud of her work and extremely upset when her Gondsmen go haywire. She\'s a noncombatant (won\'t destroy her own creations) but will heal unconscious characters.',
+                  quote: 'Why would you do it yourself when you can build something... or someone... to do it for you?'
+                }
+              ],
+              mechanics: [
+                { title: 'Convincing Boltac', details: 'DC 20 Charisma (Persuasion) to convince him of danger. DC reduced by 5 for: showing the bloody note, displaying Eledstra\'s writ. DC 20 Deception (no reduction) to pretend to be his contact. DC 15 Athletics to physically tackle/wrestle him to safety.' },
+                { title: 'Boltac\'s Stats', details: 'AC 15, HP 22. Attack: adamantine longsword +4 to hit, 7 (1d8+3) damage. If convinced, follows player orders. If not, picks up a longsword and defends his property.' },
+                { title: 'Ellywicket\'s Stats', details: 'AC 11, HP 15. Won\'t fight her own Gondsmen. Can cast: Cure Wounds (3 slots, touch, heals 1d8+4) or Spare the Dying (cantrip, touch, stabilize). She casts remaining heals on party/Boltac before leaving.' },
+                { title: 'Adamantine Weapons', details: 'IMPORTANT: Boltac\'s wares bypass the Gondsmen\'s damage resistance! Any PHB melee weapon can be found with an Action. If Boltac sees a character\'s attack get reduced by resistance, HE CALLS OUT to use his weapons.' },
+                { title: 'C1e7i5 Assassin Strike', details: 'Acts on Initiative 20 (loses ties). Spends rounds 1-2 aiming. From round 3: readies action to fire if Boltac is NOT prone and has NO allies within 5 feet. If triggered: automatic critical hit, 22 damage, Boltac drops to 0 HP and needs death saves.' },
+                { title: 'If C1e7i5 Never Gets a Shot', details: 'If characters stay adjacent to Boltac the entire fight, C1e7i5 instead fires the bolt at the closest adventurer. No attack roll needed but no auto-crit either. Target takes 1d10+2 piercing damage.' },
+                { title: 'The Next Note', details: 'The crossbow bolt is HOLLOW and contains rolled-up parchment squares inside. Examining the bolt reveals this without a check. If players don\'t think to check and Boltac is alive, he angrily grabs the bolt and snaps it in half, revealing the note.' },
+                { title: 'Encounter Scaling (Strong Party)', details: 'Already set for Strong party (8 Gondsmen). Very Strong: increase Gondsman HP from 11 to 18 and damage from 4 (1d6+1) to 5 (1d8+1).' }
+              ],
+              dmTips: [
+                'Gondsman tactics: C1e7i5 uses them to clear characters away from Boltac. Use the Shove action to displace defenders long enough for the crossbow shot.',
+                'Boltac says "Ah, Callanwolde, I presume?" when approached - he was lured here by a fake buyer set up by C1e7i5.',
+                'If Boltac survives, he thanks the party profusely and lets them BORROW adamantine weapons for the rest of the adventure (they teleport back to his forge if taken >1 mile away).',
+                'Ellywicket is innocent - she\'s distraught about her Gondsmen. She insists "Nothing like this has ever happened before!"',
+                'Sergeant Eledstra arrives ~15 minutes after the fight ends. The characters don\'t need to stay and guard Boltac/the scene.'
+              ],
+              faq: [
+                { q: 'Can players keep the adamantine weapons?', a: 'No - each weapon has a smith\'s mark that teleports it back to Boltac\'s forge if taken more than a mile away. Players who try to steal lose the Chunk of Adamantine story award.' },
+                { q: 'What if Boltac dies?', a: 'Mark "Boltac: Died" in Story Notes. The party won\'t get the Chunk of Adamantine reward. The note is still in the crossbow bolt for them to find.' },
+                { q: 'Players suspect Ellywicket is involved?', a: 'She denies everything and she\'s clearly telling the truth. Players can console her or not. She mournfully collects her destroyed Gondsmen and returns to the temple of Gond.' }
+              ]
+            },
+            {
+              id: 'puzzle2', title: 'Puzzle 2: The Grid', type: 'investigation', time: '9:15 PM',
+              description: 'The characters must solve a 3x3 grid puzzle from parchment pieces found inside the crossbow bolt to discover the next target: a half-elf priestess at the Temple of Loviatar at 10 bells.',
+              mechanics: [
+                { title: 'The Puzzle', details: '9 parchment pieces with numbers in corners and letters on each piece. Assemble into a 3x3 grid by matching corner numbers. Then read the hidden message.' },
+                { title: 'Hint 1: Two Parts', details: 'Numbers in corners = guide for assembly. Letters = the hidden message.' },
+                { title: 'Hint 2: Shape', details: 'All pieces are the same size. Some corner numbers match other pieces. Pieces with 4 identical numbers go in the CENTER positions. Unique corner numbers go on the OUTSIDE.' },
+                { title: 'Hint 3: Reading', details: 'Ignore extraneous letters (lots of Q\'s and X\'s). Read across the middle: HALF ELF. Read clockwise around the ring: TEMPLE OF LOVIATAR TEN HOURS.' },
+                { title: 'Full Solution', details: 'The next victim is a HALF-ELF at the TEMPLE OF LOVIATAR at TEN BELLS (10:00 PM). There is only one half-elven priestess at the temple: Zellani.' },
+                { title: 'Who Can Help', details: 'Boltac and/or Ellywicket can offer suggestions. Waiting for Sergeant Eledstra takes a full 15 minutes.' },
+                { title: 'Travel Time', details: '~25 minutes from marketplace to Temple of Loviatar. Even with puzzle-solving time, they can arrive with time to spare.' }
+              ],
+              dmTips: [
+                'If possible, cut the puzzle pieces out ahead of time so players can physically assemble them at the table.',
+                'OPTIONAL CHALLENGE: Use real-world solving time as in-game time. Track minutes to solve, subtract from 20. That\'s how many extra minutes before 10 bells they have at the temple. If >20 minutes, battle is already in progress when they arrive (but Zellani is still alive).',
+                'This puzzle is harder than the first one. Be ready with hints. Use Boltac or Elly to help if players are struggling.',
+                'Three large temples in Melvaunt: Gond, Sune, and Loviatar. If players are stuck on the temple name, mention these three as options.'
+              ],
+              faq: [
+                { q: 'What if they completely fail the puzzle?', a: 'Use "Failing Forward." They hear about the attack at the temple and rush there. The battle is in progress but Zellani is still alive.' },
+                { q: 'Can they take a short rest now?', a: 'No - the next murder is at 10 bells and it takes 25 minutes to reach the temple. Time is still tight.' }
+              ]
+            },
+            {
+              id: 'travel2', title: 'Travel to Temple', type: 'narrative', time: '9:30 PM',
+              description: 'The characters travel to the Temple of Loviatar. They must decide how to approach: present themselves diplomatically or set up outside. C1e7i5 is ALREADY INSIDE the temple.',
+              readAloud: [
+                'The temple is a two-story stone building, larger and wider than the more ramshackle structures on either side of it, but not otherwise out of place in the district. Apart from a few statues and a holy symbol over the door, there\'s not much here to suggest the presence of a place of worship.',
+                'This might be due to some of the misunderstandings that commoners, especially sailors, tend to have about the teachings of Loviatar. From here you can see the glow of the lighthouse all the way down at the other end of the docks.',
+                'The door is closed, although a bit of light escapes from within through the narrow glass windows. It does not appear that the temple is open to supplicants at this late hour, but neither does the building seem to be uninhabited.'
+              ],
+              mechanics: [
+                { title: 'Critical Info: C1e7i5 is ALREADY INSIDE', details: 'The modron is already hiding inside the temple, waiting for 10 bells. Setting up outside to intercept the assassin will NOT work.' },
+                { title: 'Diplomatic Approach', details: 'Use the bell pull at the front door. Zellani comes to a metal slat in the door. DC 10 Persuasion to get her to listen. DC 15 for Intimidation or Deception. Advantage on Persuasion if they show the note or Eledstra\'s writ.' },
+                { title: 'Best Outcome', details: 'Convince Zellani to let them guard her. She reluctantly invites them into the sanctuary but warns them to stay in the main hall.' },
+                { title: 'Failed Persuasion', details: 'Zellani closes the door. Options: wait outside (won\'t spot assassin - C1e7i5 is already inside), or sneak in via side door: DC 15 Dexterity (thieves\' tools). This leads to back of sanctuary - must hide behind curtains or Zellani calls the watch.' },
+                { title: 'Breaking In', details: 'Front door is locked. DC 15 Strength (Athletics) to force open, or DC 15 Dexterity (thieves\' tools) to pick.' }
+              ],
+              dmTips: [
+                'Zellani is a priestess of LOVIATAR (goddess of pain). She\'s not easily scared and considers herself above ordinary folk.',
+                'The City Watch\'s authority does NOT extend to entering temples whenever they want - Zellani correctly points this out even if they show the writ.',
+                'If the characters are inside when the attack begins, they have a better starting position. If outside, they must break in first (losing precious time).',
+                'There are curtains they can hide behind if they sneak in (shown on Map 3).'
+              ],
+              faq: [
+                { q: 'Can they search the temple for the assassin?', a: '"Let us search the temple" will NOT make Zellani happy. The best they can hope for is offering to guard her. She will not let them roam freely.' },
+                { q: 'Who is Loviatar?', a: 'Loviatar is the "Maiden of Pain" - a lawful evil goddess whose followers believe pain and torment are divine gifts. The temple is one of the largest in Melvaunt. Zellani can summon devils bound to Loviatar for defense.' }
+              ]
+            },
+            {
+              id: 'roleplay', title: 'Convince Zellani', type: 'roleplay', time: '9:45 PM',
+              description: 'Detailed roleplay encounter with Zellani. Getting her cooperation is important but the attack will happen regardless at 10 bells.',
+              roleplay: [
+                {
+                  name: 'Zellani',
+                  race: 'Half-Elf',
+                  appearance: 'Tall and muscular with jet-black hair. A deep scar on one cheek that looks like it was made by a sword (from her younger days as a mercenary). She does not speak of her past.',
+                  personality: 'A priestess of Loviatar working her way up the ranks. Adheres to Loviatar\'s teachings and considers herself above ordinary folk because of her duty to administer pain and torment. Overconfident - making her an easier target for C1e7i5. Not easily cowed (priestesses of Loviatar are used to pain).',
+                  quote: 'I shall give you the pain you so richly deserve.'
+                }
+              ],
+              mechanics: [
+                { title: 'DC 10 Persuasion', details: 'Get Zellani to listen to what they have to say. This is the easiest path.' },
+                { title: 'DC 15 Intimidation', details: 'Harder because priestesses of Loviatar are not easily cowed by threats of pain or danger.' },
+                { title: 'DC 15 Deception', details: 'Harder because she is already suspicious of strangers at this hour.' },
+                { title: 'Advantage on Persuasion', details: 'Showing Zellani the murderer\'s note OR the writ from Sergeant Eledstra grants advantage.' },
+                { title: 'Best Outcome: Guard Duty', details: 'If persuaded, Zellani invites them into the sanctuary to guard her but warns them not to leave the main hall. She goes back to tending the shrine.' },
+                { title: 'Failure', details: 'She closes the door. Players must wait outside (bad position) or sneak in via side door (DC 15 Dexterity with thieves\' tools). Sneaking in requires hiding behind curtains or she calls the watch.' },
+                { title: 'Zellani\'s Defense', details: 'When attacked, she can summon devils (lemures and imps) bound to Loviatar. She fights with a thorn whip in melee. She used all spell slots for the devil summoning, leaving only Sacred Flame cantrip.' }
+              ],
+              dmTips: [
+                'Zellani is unaware of the night\'s events. Even if the characters\' story is true, she believes the safest place for her is inside the temple.',
+                'She will NOT abandon her duties. At 10 bells she must tend the shrine - this is non-negotiable.',
+                'Play her as proud and slightly condescending. She respects strength and conviction, not groveling.',
+                'Whether inside or outside, the attack happens at 10 bells regardless. Being inside is better for the characters.'
+              ],
+              faq: [
+                { q: 'What if they just tackle/restrain Zellani?', a: 'She will NOT react well to this. She\'ll call the Watch, and explaining why you assaulted a priestess will be difficult even with Eledstra\'s writ.' },
+                { q: 'Can they ward the temple with magic?', a: 'Level 1 characters likely don\'t have ward spells. C1e7i5 is already inside anyway. They can position themselves strategically though.' },
+                { q: 'What is Zellani\'s stat block?', a: 'AC 13, HP 25, Speed 30ft. Thorn whip: +4 to hit, reach 5-10ft, 7 (2d4+2) piercing/slashing. Sacred Flame: cantrip, DC 12, 1d8 radiant.' }
+              ]
+            },
+            {
+              id: 'enc4', title: 'Enc 4: Temple Chaos', type: 'combat', time: '10:00 PM',
+              enemies: [{name:'Chaos Blight', count:6, hp:9, ac:12}, {name:'Chaos Bolter', count:3, hp:18, ac:13}, {name:'C1e7i5', count:1, hp:49, ac:16}],
+              npcs: [{name:'Zellani', hp:25, ac:13}],
+              description: 'C1e7i5 summons chaos creatures through planar rifts. Zellani summons devils to defend the temple. The characters fight chaos creatures while devils fight independently. After the creatures are defeated, C1e7i5 crashes through the skylight for a dramatic confrontation.',
+              readAloud: [
+                '(If OUTSIDE) The clock tower chimes the hour, predictable and steady as always. Sure enough, as the last bell fades away, you hear the sound of breaking glass and shouts of battle from inside the temple.',
+                '(If INSIDE) As the last of ten chimes fades away, you brace for the inevitable attack. The priestess looks up in surprise as thin strips of yellow light appear in the air, as if someone were slicing through the very fabric of reality. Swirling motes of chaotic energy burst through the rifts, followed by stick-like figures whose shapes twist and waver, constantly changing form.',
+                '"You dare invade the sanctum of Loviatar?" shouts Zellani. "I call upon the servitors of the Maiden of Pain to taste the delicious agony of your suffering!" She gestures, and flashes of light herald the arrival of devils throughout the temple.'
+              ],
+              mechanics: [
+                { title: 'Chaos Creatures Tactics', details: 'Uncontrollable - attack recklessly without coordination. C1e7i5 makes no attempt to control them.' },
+                { title: 'Devils (Background)', details: 'Lawful evil lemures and imps summoned by Zellani. They mostly fight chaos creatures in the background. Describe this cinematically - don\'t track individual devils vs chaos creatures.' },
+                { title: 'Devil Fly-By Attack (1d6 per turn)', details: 'At the END of each adventurer\'s turn, roll 1d6. On a 6, a nearby imp attacks that character. +5 to hit, 5 (1d4+3) piercing. Don\'t attack same character two rounds in a row. Loviatar worshippers are immune.' },
+                { title: 'Imp Poison (APL > 2 only)', details: 'If APL is greater than 2 and the imp hits, target must make DC 11 Con save. Fail: 10 (3d6) poison damage. Success: half damage. Your party is APL 1, so skip this.' },
+                { title: 'Zellani\'s Stats', details: 'AC 13, HP 25, Speed 30ft. Melee: thorn whip +4, reach 5-10ft, 7 (2d4+2) damage. Ranged: sacred flame cantrip, DC 12, 1d8 radiant. Keep her positioned near the altar (under the skylight) for the dramatic moment.' },
+                { title: 'Encounter Scaling (Strong Party)', details: 'Already set: 3 chaos bolters, 6 chaos blights. Very Strong: add 2 more chaos blights (8 total), add a chaos slasher, increase bolter HP from 11 to 18.' },
+                { title: 'SAVING ZELLANI - The Skylight Moment', details: 'After all chaos creatures are defeated, C1e7i5 crashes through the glass skylight above the altar! It hovers 30ft up (out of melee range) aiming a black arrow at Zellani. Each character gets ONE ACTION.' },
+                { title: 'Damage Target to Save Zellani', details: 'For your party (6 characters, APL 1): must deal 4 x 6 = 24 total damage in one round against AC 16. A character who shields Zellani instead of attacking counts as 10 damage toward the target.' },
+                { title: 'If Zellani is Saved', details: 'C1e7i5\'s aim is ruined. The black arrow skips off the marble floor. The assassin flies back through the broken skylight, moving slowly (injured). Zellani gasps: "Door... to the roof. Behind the curtain. Hurry. Get that bastard for me."' },
+                { title: 'If Zellani Dies', details: 'The black arrow takes her in the side. She slumps to the floor and gasps her final words: "Door... to the roof. Behind the curtain. Get that bastard... for... me." The assassin lazily spirals up through the skylight.' }
+              ],
+              dmTips: [
+                'This is the LAST real fight of the adventure. If the characters are having an easy time and have resources left, throw extra chaos creatures at them.',
+                'Try to keep Zellani positioned near the altar (under the skylight) during the fight for the dramatic C1e7i5 entrance.',
+                'Players might think they need to hold back resources for a fight with C1e7i5. They DON\'T - they won\'t fight the modron directly in this adventure. Let them go all-out.',
+                'The skylight moment should feel cinematic. Describe the glass shattering, the massive shard impaling Zellani\'s shoulder, the cloaked figure hovering with a black arrow aimed at her heart.',
+                'If outside: front door is locked. DC 15 Athletics to force open or DC 15 Dexterity (thieves\' tools). This costs precious time.'
+              ],
+              faq: [
+                { q: 'Can they kill C1e7i5 during the skylight moment?', a: 'No. They can deal enough damage to throw off its aim (saving Zellani), but cannot kill it here regardless of damage dealt.' },
+                { q: 'What happens to the devils after the fight?', a: 'They were summoned using all of Zellani\'s spell slots. Once the chaos creatures are gone, the summoning ends and the devils disappear.' },
+                { q: 'What if the players are all outside?', a: 'They hear breaking glass and shouts. Must force the front door (DC 15 Athletics/thieves tools). They arrive during the fight - some chaos creatures may already be defeated by Zellani and her devils.' }
+              ]
+            },
+            {
+              id: 'enc5', title: 'Enc 5: Rooftop Chase', type: 'skill-challenge', time: '10:15 PM',
+              description: 'A cinematic chase across the rooftops as C1e7i5 flees toward the lighthouse, tearing open planar rifts that create obstacles. This is ABSTRACT - no battle map, just zones.',
+              readAloud: [
+                'The cloaked figure takes off toward the glow of the lighthouse at the far end of the pier. The warehouses, taverns, and other buildings in this area are built so close together that you can actually run along the rooftops all the way down the length of the docks district.',
+                'Although he is flying, the assassin doesn\'t seem to be moving all that fast. Maybe you got a few good shots in there after all. You might even be able to catch him.',
+                'Then the creature reaches lazily into the air. As its arm emerges from beneath the billowing cloak you catch just a glimpse of how thin it is. The skin seems strange... almost metallic. There\'s no time to ponder the implications, however, because glowing energy erupts, creating small planar rifts. The rooftops have just become an obstacle course of mythical proportions.'
+              ],
+              mechanics: [
+                { title: 'Chase Structure', details: 'Cinematic, NOT tactical. No battle map. Track initiative order and which zone each character is in. The lead character is always one zone behind C1e7i5. 4 zones total before reaching the lighthouse.' },
+                { title: 'Speed Bonus', details: '+1 bonus on all skill checks per obstacle for each 10ft of movement above 30ft. Characters with Dash as bonus action or high base speed get a small edge.' },
+                { title: 'Arcana Support', details: 'DC 15 Arcana check as an action to destabilize the planar rifts in your zone. Success: all other characters in that zone have advantage on their checks this round.' },
+                { title: 'If Stuck Too Long', details: 'If characters spend more than 1-2 rounds on an obstacle, the planar rifts in that zone disappear, letting them proceed. C1e7i5 is on a tight schedule.' },
+                { title: '1. Ethereal (Ether Cyclone)', details: 'Howling wind-like serpentine columns. DC 10 Strength (Athletics) or fail to progress this turn.' },
+                { title: '2. Feywild (Rampant Growth)', details: 'Clinging vines and poisonous thorns. DC 10 Dexterity (Acrobatics) or fail + take 3 (1d4+1) poison damage. OR: attack dealing 7+ slashing or 3+ fire damage to cut/burn through.' },
+                { title: '3. Shadowfell (Despair)', details: 'Ghostly hands sap life and will. DC 10 Wisdom save or stop moving, overcome by despair. Can repeat save each turn. Characters stopped also take 3 (1d6) necrotic per round.' },
+                { title: '4. Limbo: Chaos Bolters', details: 'Each character hit by one chaotic bolt attack. If hit, DC 10 Con save or grow an extra limb of a different species that flails uselessly (disappears end of next turn).' },
+                { title: '5. Beastlands (Hunter\'s Maze)', details: 'Thundering herd and wild patterns of sound/color. DC 10 Wisdom (Animal Handling, Perception, or Survival) to stay on the true path.' },
+                { title: '6. The Abyss (Corruption)', details: 'Gruesome hallucinations - mouths eating arms, betrayal paranoia, bloodlust, minor demon possession. DC 10 Charisma check. Give each character a different type of corruption.' },
+                { title: '7. Hades (Larvae)', details: 'Endless stream of vile larvae. Attack: +3 to hit, 3 (1d4+1) piercing. If hit: restrained as larvae pile on. DC 9 Athletics or Acrobatics to break free. Everything appears gray and colorless.' },
+                { title: '8. Limbo: Power of the Mind', details: 'Limbs stop working - only mental force allows motion. DC 10 Intelligence to move another character, DC 15 to move yourself. Need 2 successful movement checks to exit. Getting stuck here alone is bad.' }
+              ],
+              dmTips: [
+                'Roll d8 for random obstacles or pick 4 that suit your remaining time and party composition.',
+                'If running short on time, just run 2 obstacles then skip to the lighthouse finale.',
+                'This should feel exciting and cinematic. Describe the planar effects dramatically. Each zone is a mini-vignette, not a drawn-out tactical fight.',
+                'Characters who are more than 2 zones behind when the lead character reaches the lighthouse won\'t make it to the finale.',
+                'When a character exits the final zone, reality snaps back to normal. Looking back, they see ordinary rooftops - the planar effects are only visible to those caught within them.'
+              ],
+              faq: [
+                { q: 'What about characters with high speed or Dash?', a: 'They get the speed bonus (+1 per 10ft above 30ft) but can\'t just sprint past obstacles. The zones are abstract - everyone must overcome each obstacle regardless of speed.' },
+                { q: 'Can they fly?', a: 'If a character can fly at level 1, they still encounter the planar rifts - the obstacles affect the air as well as the ground. But grant them advantage on checks where flight would logically help.' },
+                { q: 'What if the whole party gets stuck?', a: 'After 1-2 rounds in any zone, the rifts disappear. The modron is on a tight schedule and doesn\'t have infinite energy to maintain the rifts.' }
+              ]
+            },
+            {
+              id: 'finale', title: 'Lighthouse Finale', type: 'narrative', time: '10:30 PM',
+              description: 'The chase ends at the Finger of the Gods lighthouse. The modron is finally revealed as C1e7i5 escapes through a massive portal to Mechanus, losing an arm in the process.',
+              readAloud: [
+                'The massive lighthouse known as the Finger of the Gods stands before you, its beacon visible far across the Moonsea. You reach the end of the last rooftop just a few paces behind the floating, cloaked figure, which slowly turns to face you.',
+                'As the hood of its cloak falls away, you see... a square, cubical face, with swirling eyes and metallic skin. No, not just a face... the creature\'s entire body is essentially a perfect cube about the size of a man\'s torso. It has no neck or head; its face peers at you from the front of the cube. It is bipedal, but its arms and legs are skinny and elongated. It moves with a surprising quickness for something so strangely proportioned.',
+                'You hear the familiar sound of the clock tower striking. But the noise isn\'t coming from somewhere back in the city - it\'s coming from directly in front of you. From the lighthouse. A massive portal, easily fifteen feet in diameter, opens up in the side of the Finger of the Gods. Through the portal you see a realm of clockwork gears, all interlocking, all moving in time, performing a calculation so vast and so complicated that not even the minds of the gods can fathom its purpose.',
+                'The modron... the machine... the murderer... bows slightly in your direction and turns to enter the portal.',
+                'Your weapons and spells strike true: your efforts are not in vain. As the modron falls into the portal, a look of absolute bliss on its face, there is a wrenching sound and one of its arms rips completely out of the socket! The creature starts to scream, but before the sound reaches your ears, the entire portal snaps shut with an audible POP. You are left holding one very strange severed limb and precious few answers.'
+              ],
+              mechanics: [
+                { title: 'DC 10 Intelligence (Arcana)', details: 'Recognize this creature as a modron, native to the plane of Mechanus.' },
+                { title: 'DC 15 Intelligence (Arcana)', details: 'Identify it specifically as a quadrone (mid-ranking modron - the more sides, the higher the rank). Modrons are supposed to be creatures of absolute law and order. This behavior is extremely strange.' },
+                { title: 'Players Get One Action', details: 'Let each character announce an action: attack, grapple, etc. C1e7i5 escapes regardless, but their attacks rip off its arm as it falls through the portal.' },
+                { title: 'The Severed Limb', details: 'Instead of blood, the severed arm is made of METAL. This is the key evidence: combined with the portal leading to Mechanus, it proves they\'ve been pursuing a modron.' },
+                { title: 'Portal Closes', details: 'The portal snaps shut. The characters cannot reopen it. They have no choice but to return to Sergeant Eledstra with their evidence.' }
+              ],
+              dmTips: [
+                'This is the BIG REVEAL. Play it up! The moment the cloak falls away and they see the cube-shaped body with metallic skin should be a "what the hell?" moment.',
+                'The portal to Mechanus should feel awe-inspiring. Describe the realm of clockwork gears, the vast calculation, the sense of cosmic order beyond mortal comprehension.',
+                'C1e7i5 BOWS to them before entering. It considers this a success - its plan worked perfectly (in its mind). That look of "absolute bliss" is important.',
+                'Characters who were more than 2 zones behind in the chase don\'t arrive in time for this scene. They catch up afterward and get the story from the others.',
+                'This leads directly into CORE 1-2: A Cog in the Wheel.'
+              ],
+              faq: [
+                { q: 'Can the players enter the portal?', a: 'They could try, but the portal snaps shut almost immediately. Even if someone jumped through, that\'s a whole different adventure. The module assumes they don\'t.' },
+                { q: 'Can they save the severed arm?', a: 'Yes! It\'s a key piece of evidence. Eledstra will ask for it if they mention it. Their story has more credibility if they turn it over.' },
+                { q: 'What IS a modron?', a: 'Creatures of absolute law and order native to Mechanus. They tend the eternal gears and follow Primus. They occasionally go rogue. This group was corrupted by chaos energy.' }
+              ]
+            },
+            {
+              id: 'conclusion', title: 'Rewards & Conclusion', type: 'conclusion',
+              description: 'The adventure concludes with Eledstra debriefing the characters and handing out rewards based on their performance.',
+              readAloud: [
+                'It looks as though the strange matter of the modron serial killer has come to an end, for now. There\'s something strange about the whole thing, though. Modrons are creatures of absolute law and order. Occasionally they go rogue, but for one to plan and carry out a series of premeditated murders seems even beyond what rogue modrons have done in the past.',
+                'Then there\'s the matter of the severed arm which somehow seems to be connected to the portal to Mechanus. Where there\'s one crazy murderous modron, could there be more? You have a feeling that you, and Melvaunt, may find out the answer to that question much sooner than you would like.',
+                'The story continues in CORE 1-2: A Cog in the Wheel.'
+              ],
+              mechanics: [
+                { title: 'XP: Combat Awards (divide by # characters)', details: 'Swarm of Animated Caltrops: 50 XP each. Lesser Gondsman: 25 XP each. Chaos Blight: 25 XP each. Chaos Bolter: 50 XP each. Chaos Slasher: 200 XP each.' },
+                { title: 'XP: Non-Combat Awards (per character)', details: 'Solving the "Blacksmith" puzzle: 25 XP. Solving the "Loviatar" puzzle: 25 XP. Chasing the modron to the portal: 50 XP.' },
+                { title: 'XP Range', details: 'Minimum: 225 XP per character. Maximum: 300 XP per character.' },
+                { title: 'Gold: Eledstra\'s Reward', details: '100 gp total (divided among party) for their service to the Watch.' },
+                { title: 'Gold: Zellani\'s Reward (if saved)', details: '100 gp total from the Temple of Loviatar.' },
+                { title: 'Potion of Greater Healing', details: 'Uncommon potion, one per party. Heals 4d4+4 HP.' },
+                { title: 'Story Award: Chunk of Adamantine (if Boltac saved)', details: 'Each character gets raw adamantine ore. Can sell for 50 gp OR save to forge weapons. 1 chunk = dagger/light hammer/sickle. 2 = handaxe/shortsword/etc. 3 = longsword/battleaxe/etc. 4 = greatsword/greataxe/etc. Adamantine weapons bypass certain damage resistances.' },
+                { title: 'Story Award: Favor of Zellani (if Zellani saved)', details: '25% discount on spellcasting services from the Temple of Loviatar. May also help in future Melvaunt adventures.' },
+                { title: 'Council of Lords (if BOTH saved)', details: 'Two Points of Influence in Melvaunt. Their deeds have been brought to the attention of the ruling Council of Lords, whose three families are always looking for up-and-coming adventurers.' },
+                { title: 'Downtime', details: 'Each character receives 10 downtime days.' },
+                { title: 'Renown', details: 'All faction members earn 1 renown point.' }
+              ],
+              dmTips: [
+                'Eledstra is at the Temple of Loviatar when they return. She asks for a full report.',
+                'Encourage them to turn over the modron\'s severed arm - it adds credibility to their story.',
+                'If both NPCs survived, Eledstra is genuinely proud and mentions their deeds reaching the Council of Lords.',
+                'The Chunk of Adamantine can be saved across multiple adventures - players can combine chunks to forge larger weapons.',
+                'Tease the sequel: CORE 1-2 A Cog in the Wheel continues the story of the modron invasion.'
+              ],
+              faq: [
+                { q: 'What exactly is the adamantine chunk good for?', a: 'It can be sold for 50 gp or saved to forge a weapon. Adamantine weapons bypass damage resistance of certain creatures (like constructs). Multiple chunks from multiple adventures can be combined for bigger weapons.' },
+                { q: 'What if only one NPC survived?', a: 'They get the reward from that NPC but not the other. No Council of Lords recognition unless both were saved.' },
+                { q: 'What happens next?', a: 'CORE 1-2: A Cog in the Wheel. The portal to Mechanus must be reopened and the modron threat investigated. The severed arm is key evidence.' }
+              ]
+            }
+          ],
+          timeline: [
+            {time:'7:45 PM', event:'Leave tavern'},
+            {time:'8:00 PM', event:'Murder 1 (dockworker)', bell:'8 bells'},
+            {time:'8:15 PM', event:'Meet Eledstra, Puzzle 1'},
+            {time:'9:00 PM', event:'Murder 2 (Boltac)', bell:'9 bells', save:true},
+            {time:'9:15 PM', event:'Puzzle 2'},
+            {time:'10:00 PM', event:'Murder 3 (Zellani)', bell:'10 bells', save:true},
+            {time:'10:15 PM', event:'Chase scene'},
+            {time:'10:30 PM', event:'Portal opens'}
+          ]
+        };
+
+        const DMCompanion = () => {
+          const [slide, setSlide] = useState(0);
+          const [hp, setHp] = useState({});
+          const [notes, setNotes] = useState({ boltac: null, zellani: null, moments: [] });
+          const [noteText, setNoteText] = useState('');
+          const [showCombat, setShowCombat] = useState(false);
+
+          const current = CAMPAIGN_DATA.slides[slide];
+
+          useEffect(() => {
+            if (current.type === 'combat') {
+              const newHp = {};
+              current.enemies?.forEach(e => {
+                for(let i=1; i<=e.count; i++) {
+                  const key = `${e.name}-${i}`;
+                  if (!hp[key]) newHp[key] = e.hp;
+                }
+              });
+              current.npcs?.forEach(n => {
+                if (!hp[n.name]) newHp[n.name] = n.hp;
+              });
+              if (Object.keys(newHp).length) setHp(prev => ({...prev, ...newHp}));
+            }
+          }, [slide]);
+
+          const updateHp = (key, delta, max) => {
+            setHp(prev => ({...prev, [key]: Math.max(0, Math.min(max, (prev[key] || max) + delta))}));
+          };
+
+          const addNote = () => {
+            if (!noteText.trim()) return;
+            setNotes(prev => ({...prev, moments: [...prev.moments, {time: new Date().toLocaleTimeString(), text: noteText}]}));
+            setNoteText('');
+          };
+
+          // Render the rich content sections for any slide
+          const renderSlideContent = () => {
+            const sections = [];
+
+            // Description (always visible, not collapsible)
+            if (current.description) {
+              sections.push(
+                <p key="desc" className="text-amber-100/80 text-base mb-2 leading-relaxed">{current.description}</p>
+              );
+            }
+
+            // Intro slide special content
+            if (current.type === 'intro') {
+              sections.push(
+                <div key="intro-cards" className="grid md:grid-cols-2 gap-4 mb-2">
+                  <div className="bg-slate-950/50 p-5 rounded-lg border border-amber-600/30">
+                    <h3 className="text-lg font-semibold text-amber-400 mb-3 font-display">Setup</h3>
+                    <ul className="space-y-2 text-sm">
+                      <li className="text-amber-100/90">6 Players: Paladin, Monk, Ranger, Warlock, Sorcerer, Barbarian</li>
+                      <li className="text-amber-100/90">Level 1 - Strong Party</li>
+                      <li className="text-amber-100/90">Duration: 3-4 hours</li>
+                      <li className="text-amber-100/90">Location: The Winking Narwhal, Melvaunt</li>
+                    </ul>
+                  </div>
+                  <div className="bg-slate-950/50 p-5 rounded-lg border border-purple-600/30">
+                    <h3 className="text-lg font-semibold text-purple-400 mb-3 font-display">Objectives</h3>
+                    <ul className="space-y-2 text-sm">
+                      <li className="text-purple-100/90">Stop the serial killer</li>
+                      <li className="text-purple-100/90">Solve cryptic puzzles</li>
+                      <li className="text-purple-100/90">Save innocent victims</li>
+                      <li className="text-purple-100/90">Discover the modron truth</li>
+                    </ul>
+                  </div>
+                </div>
+              );
+            }
+
+            // Read-Aloud Text
+            if (current.readAloud?.length) {
+              sections.push(
+                <Section key="readAloud" title="Read Aloud" icon="📜" color="amber" defaultOpen={current.type === 'narrative' || current.type === 'roleplay'}>
+                  <ReadAloud texts={current.readAloud} />
+                </Section>
+              );
+            }
+
+            // NPC Roleplay
+            if (current.roleplay?.length) {
+              sections.push(
+                <Section key="roleplay" title="NPC Roleplay Guide" icon="🎭" color="green">
+                  {current.roleplay.map((npc, i) => <NPCCard key={i} npc={npc} />)}
+                </Section>
+              );
+            }
+
+            // Key Mechanics
+            if (current.mechanics?.length) {
+              sections.push(
+                <Section key="mechanics" title="Key Mechanics & DCs" icon="⚔️" color="blue" defaultOpen={current.type === 'investigation' || current.type === 'skill-challenge'}>
+                  {current.mechanics.map((item, i) => <MechanicItem key={i} item={item} />)}
+                </Section>
+              );
+            }
+
+            // DM Tips
+            if (current.dmTips?.length) {
+              sections.push(
+                <Section key="dmTips" title="DM Tips" icon="💡" color="purple">
+                  <ul className="space-y-2">
+                    {current.dmTips.map((tip, i) => (
+                      <li key={i} className="text-purple-100/80 text-sm flex gap-2">
+                        <span className="text-purple-400 mt-0.5 flex-shrink-0">▸</span>
+                        <span>{tip}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </Section>
+              );
+            }
+
+            // FAQ
+            if (current.faq?.length) {
+              sections.push(
+                <Section key="faq" title="Common Questions" icon="❓" color="slate">
+                  {current.faq.map((item, i) => <FAQItem key={i} item={item} />)}
+                </Section>
+              );
+            }
+
+            return sections;
+          };
+
+          return (
+            <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 text-amber-50">
+              <div className="fixed inset-0 opacity-5 pointer-events-none" style={{
+                backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4z' fill='%23fff'/%3E%3C/svg%3E")`
+              }}/>
+
+              <header className="relative border-b-2 border-amber-600 bg-slate-950/90 backdrop-blur">
+                <div className="container mx-auto px-6 py-6">
+                  <div className="flex justify-between items-center">
+                    <div>
+                      <h1 className="text-4xl font-bold text-amber-400 font-display">A Scream in the Night</h1>
+                      <p className="text-amber-300/70 text-sm mt-1">DM Companion &bull; Slide {slide+1} of {CAMPAIGN_DATA.slides.length}</p>
+                    </div>
+                    {current.time && (
+                      <div className="bg-purple-900/60 px-5 py-2 rounded-lg border border-purple-500/40 flex items-center gap-2">
+                        <Icon d="M12 2v4m0 12v4m8.66-14.66l-2.83 2.83M6.17 17.83l-2.83 2.83M22 12h-4M6 12H2m16.66 6.66l-2.83-2.83M6.17 6.17L3.34 3.34"/>
+                        <span className="text-purple-200 font-semibold">{current.time}</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </header>
+
+              <main className="container mx-auto px-6 py-8">
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                  <div className="lg:col-span-2">
+                    <div className="bg-gradient-to-r from-amber-900/30 to-purple-900/30 backdrop-blur border-2 border-amber-600/40 rounded-xl p-6 shadow-2xl">
+                      <div className="flex justify-between items-center mb-4">
+                        <h2 className="text-3xl font-bold text-amber-300 font-display">{current.title}</h2>
+                        <span className="px-3 py-1 bg-slate-950/60 rounded text-sm uppercase tracking-wider text-amber-300/80 border border-amber-600/30">
+                          {current.type}
+                        </span>
+                      </div>
+
+                      {/* Combat Tracker */}
+                      {current.type === 'combat' && (
+                        <div className="space-y-4 mb-4">
+                          <button
+                            onClick={() => setShowCombat(!showCombat)}
+                            className="w-full bg-red-900/50 hover:bg-red-900/70 p-4 rounded-lg border-2 border-red-600/60 text-red-200 font-semibold flex items-center justify-center gap-3 transition-all"
+                          >
+                            <Icon d="M14.5 17.5L3 6 3 3 6 3 17.5 14.5M13 19l6-6M16 16l4 4M19 21l2-2"/>
+                            {showCombat ? 'Hide' : 'Show'} Combat Tracker
+                          </button>
+
+                          {showCombat && (
+                            <div className="bg-slate-950/80 p-5 rounded-lg border-2 border-red-600/50 space-y-4">
+                              {current.npcs && (
+                                <div>
+                                  <h3 className="text-lg font-semibold text-green-400 mb-3 flex items-center gap-2">
+                                    <Icon d="M12 2a3 3 0 003 3 3 3 0 003-3 3 3 0 00-3-3 3 3 0 00-3 3zM21 9h-6l-3 14-3-14H3"/>
+                                    NPCs / Allies
+                                  </h3>
+                                  {current.npcs.map(npc => {
+                                    const currentHp = hp[npc.name] || npc.hp;
+                                    const pct = (currentHp / npc.hp) * 100;
+                                    return (
+                                      <div key={npc.name} className="bg-green-950/30 p-3 rounded border border-green-600/30 mb-2">
+                                        <div className="flex justify-between mb-2">
+                                          <span className="text-green-300 font-semibold">{npc.name}</span>
+                                          <span className="text-green-200 text-sm">AC {npc.ac}</span>
+                                        </div>
+                                        <div className="flex items-center gap-2 mb-2">
+                                          <button onClick={() => updateHp(npc.name, -5, npc.hp)} className="bg-red-700 hover:bg-red-600 px-3 py-1 rounded text-xs font-semibold">-5</button>
+                                          <button onClick={() => updateHp(npc.name, -1, npc.hp)} className="bg-red-600 hover:bg-red-500 px-3 py-1 rounded text-xs font-semibold">-1</button>
+                                          <div className="flex-1 text-center">
+                                            <span className={`text-lg font-bold ${pct === 0 ? 'text-red-400' : pct <= 50 ? 'text-yellow-400' : 'text-green-400'}`}>
+                                              {currentHp} / {npc.hp}
+                                            </span>
+                                          </div>
+                                          <button onClick={() => updateHp(npc.name, 1, npc.hp)} className="bg-green-600 hover:bg-green-500 px-3 py-1 rounded text-xs font-semibold">+1</button>
+                                          <button onClick={() => updateHp(npc.name, 5, npc.hp)} className="bg-green-700 hover:bg-green-600 px-3 py-1 rounded text-xs font-semibold">+5</button>
+                                        </div>
+                                        <div className="w-full bg-slate-800 rounded-full h-2">
+                                          <div className={`h-2 rounded-full transition-all ${pct === 0 ? 'bg-red-600' : pct <= 50 ? 'bg-yellow-500' : 'bg-green-500'}`} style={{width: `${pct}%`}}/>
+                                        </div>
+                                      </div>
+                                    );
+                                  })}
+                                </div>
+                              )}
+
+                              {current.enemies && (
+                                <div>
+                                  <h3 className="text-lg font-semibold text-red-400 mb-3 flex items-center gap-2">
+                                    <Icon d="M9 12a1 1 0 11-2 0 1 1 0 012 0zM15 12a1 1 0 11-2 0 1 1 0 012 0z"/>
+                                    Enemies
+                                  </h3>
+                                  {current.enemies.map(enemy => {
+                                    const creatures = Array.from({length: enemy.count}, (_, i) => ({
+                                      key: `${enemy.name}-${i+1}`,
+                                      name: enemy.count > 1 ? `${enemy.name} #${i+1}` : enemy.name
+                                    }));
+
+                                    return (
+                                      <div key={enemy.name} className="bg-red-950/30 p-3 rounded border border-red-600/50 mb-3">
+                                        <h4 className="text-red-300 font-semibold mb-2">{enemy.name}</h4>
+                                        <div className="grid grid-cols-2 gap-2 text-xs text-red-200/80 mb-3">
+                                          <span>AC: {enemy.ac}</span>
+                                          <span>HP: {enemy.hp}</span>
+                                        </div>
+                                        {creatures.map(({key, name}) => {
+                                          const currentHp = hp[key] || enemy.hp;
+                                          const pct = (currentHp / enemy.hp) * 100;
+                                          return (
+                                            <div key={key} className="bg-slate-950/50 p-2 rounded mb-2">
+                                              <div className="flex justify-between mb-1">
+                                                <span className="text-red-200 text-sm">{name}</span>
+                                              </div>
+                                              <div className="flex items-center gap-2 mb-1">
+                                                <button onClick={() => updateHp(key, -5, enemy.hp)} className="bg-red-700 hover:bg-red-600 px-2 py-1 rounded text-xs">-5</button>
+                                                <button onClick={() => updateHp(key, -1, enemy.hp)} className="bg-red-600 hover:bg-red-500 px-2 py-1 rounded text-xs">-1</button>
+                                                <div className="flex-1 text-center">
+                                                  <span className={`font-bold text-sm ${pct === 0 ? 'text-red-400 line-through' : pct <= 50 ? 'text-yellow-400' : 'text-red-200'}`}>
+                                                    {currentHp}/{enemy.hp}
+                                                  </span>
+                                                </div>
+                                                <button onClick={() => updateHp(key, 1, enemy.hp)} className="bg-green-600 hover:bg-green-500 px-2 py-1 rounded text-xs">+1</button>
+                                                <button onClick={() => updateHp(key, 5, enemy.hp)} className="bg-green-700 hover:bg-green-600 px-2 py-1 rounded text-xs">+5</button>
+                                              </div>
+                                              <div className="w-full bg-slate-800 rounded-full h-1.5">
+                                                <div className={`h-1.5 rounded-full transition-all ${pct === 0 ? 'bg-red-600' : pct <= 50 ? 'bg-yellow-500' : 'bg-red-500'}`} style={{width: `${pct}%`}}/>
+                                              </div>
+                                            </div>
+                                          );
+                                        })}
+                                      </div>
+                                    );
+                                  })}
+                                </div>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      )}
+
+                      {/* Rich Content Sections */}
+                      {renderSlideContent()}
+                    </div>
+
+                    <div className="flex justify-between mt-6">
+                      <button
+                        onClick={() => { setSlide(s => Math.max(0, s-1)); setShowCombat(false); }}
+                        disabled={slide === 0}
+                        className="px-6 py-3 bg-amber-900/50 hover:bg-amber-900/70 disabled:bg-slate-800/50 disabled:text-slate-600 rounded-lg border-2 border-amber-600/50 disabled:border-slate-700 transition-all font-semibold flex items-center gap-2"
+                      >
+                        <Icon d="m15 18-6-6 6-6"/>
+                        Previous
+                      </button>
+                      <button
+                        onClick={() => { setSlide(s => Math.min(CAMPAIGN_DATA.slides.length-1, s+1)); setShowCombat(false); }}
+                        disabled={slide === CAMPAIGN_DATA.slides.length-1}
+                        className="px-6 py-3 bg-amber-900/50 hover:bg-amber-900/70 disabled:bg-slate-800/50 disabled:text-slate-600 rounded-lg border-2 border-amber-600/50 disabled:border-slate-700 transition-all font-semibold flex items-center gap-2"
+                      >
+                        Next
+                        <Icon d="m9 18 6-6-6-6"/>
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="space-y-6">
+                    <div className="bg-slate-950/80 backdrop-blur border-2 border-purple-600/50 rounded-lg p-4">
+                      <h3 className="text-xl font-bold text-purple-300 mb-4 flex items-center gap-2 font-display">
+                        <Icon d="M12 2v4m0 12v4"/>
+                        Timeline
+                      </h3>
+                      <div className="space-y-2">
+                        {CAMPAIGN_DATA.timeline.map((e, i) => (
+                          <div key={i} className={`p-2 rounded border-l-4 ${e.save ? 'border-green-500 bg-green-950/30' : 'border-purple-500 bg-purple-950/30'}`}>
+                            <div className="flex justify-between mb-1">
+                              <span className="text-amber-300 font-semibold text-sm">{e.time}</span>
+                              {e.bell && <span className="text-amber-200/70 text-xs">{e.bell}</span>}
+                            </div>
+                            <p className="text-amber-100/80 text-xs">{e.event}</p>
+                            {e.save && <span className="text-green-400 text-xs">Can prevent</span>}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div className="bg-slate-950/80 backdrop-blur border-2 border-green-600/50 rounded-lg p-4">
+                      <h3 className="text-xl font-bold text-green-300 mb-4 flex items-center gap-2 font-display">
+                        <Icon d="M2 3h6a4 4 0 014 4v14a3 3 0 00-3-3H2z"/>
+                        Story Notes
+                      </h3>
+                      <div className="space-y-3">
+                        <div className="flex gap-2">
+                          <input
+                            type="text"
+                            value={noteText}
+                            onChange={e => setNoteText(e.target.value)}
+                            onKeyPress={e => e.key === 'Enter' && addNote()}
+                            placeholder="Key moment..."
+                            className="flex-1 px-3 py-2 bg-slate-900 border border-green-600/30 rounded text-green-100 text-sm placeholder-green-500/30"
+                          />
+                          <button onClick={addNote} className="px-4 py-2 bg-green-700 hover:bg-green-600 rounded font-semibold text-sm">Add</button>
+                        </div>
+                        <div className="space-y-2">
+                          <div className="flex justify-between items-center text-sm">
+                            <span className="text-green-200">Boltac:</span>
+                            <div className="flex gap-1">
+                              <button onClick={() => setNotes(n => ({...n, boltac:true}))} className={`px-2 py-1 rounded text-xs ${notes.boltac === true ? 'bg-green-600' : 'bg-slate-700'}`}>Saved</button>
+                              <button onClick={() => setNotes(n => ({...n, boltac:false}))} className={`px-2 py-1 rounded text-xs ${notes.boltac === false ? 'bg-red-600' : 'bg-slate-700'}`}>Died</button>
+                            </div>
+                          </div>
+                          <div className="flex justify-between items-center text-sm">
+                            <span className="text-green-200">Zellani:</span>
+                            <div className="flex gap-1">
+                              <button onClick={() => setNotes(n => ({...n, zellani:true}))} className={`px-2 py-1 rounded text-xs ${notes.zellani === true ? 'bg-green-600' : 'bg-slate-700'}`}>Saved</button>
+                              <button onClick={() => setNotes(n => ({...n, zellani:false}))} className={`px-2 py-1 rounded text-xs ${notes.zellani === false ? 'bg-red-600' : 'bg-slate-700'}`}>Died</button>
+                            </div>
+                          </div>
+                        </div>
+                        {notes.moments.length > 0 && (
+                          <div className="mt-4">
+                            <h4 className="text-green-300 font-semibold mb-2 text-sm">Moments:</h4>
+                            <ul className="space-y-1">
+                              {notes.moments.map((m, i) => (
+                                <li key={i} className="text-xs text-green-100/80">
+                                  <span className="text-green-400/60">[{m.time}]</span> {m.text}
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </main>
+            </div>
+          );
+        };
+
+        ReactDOM.render(<DMCompanion />, document.getElementById('root'));
+    </script>
+</body>
+</html>

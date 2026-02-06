@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python -c:*)",
+      "Bash(python:*)",
+      "Bash(python -c \"import importlib; importlib.import_module\\(''fitz''\\)\")",
+      "Bash(py:*)",
+      "Bash(where:*)",
+      "Bash(node -e:*)",
+      "Bash(npx pdf-parse --help)",
+      "Bash(npx pdf-parse:*)"
+    ]
+  }
+}
