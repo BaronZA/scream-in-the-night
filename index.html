@@ -109,6 +109,20 @@
         );
 
         // NPC Roleplay Card
+        // Collapsible sub-section within NPC cards
+        const NPCSubSection = ({ title, color, children }) => {
+            const [open, setOpen] = useState(false);
+            return (
+                <div className={`border border-${color}-600/30 rounded-lg mt-3 overflow-hidden`}>
+                    <button onClick={() => setOpen(!open)} className={`w-full px-3 py-2 flex items-center justify-between bg-${color}-950/30 hover:bg-${color}-950/50 transition-colors`}>
+                        <span className={`text-${color}-300 text-xs font-bold uppercase tracking-wider`}>{title}</span>
+                        {open ? <ChevronDown /> : <ChevronRight />}
+                    </button>
+                    {open && <div className="px-3 pb-3 pt-2">{children}</div>}
+                </div>
+            );
+        };
+
         const NPCCard = ({ npc }) => (
             <div className="bg-green-950/40 border border-green-600/40 rounded-lg p-4 mb-3">
                 <div className="flex justify-between items-start mb-2">
@@ -121,6 +135,62 @@
                     <div className="bg-green-900/40 border-l-4 border-green-400 p-3 rounded-r italic text-green-200 text-sm mt-2">
                         "{npc.quote}"
                     </div>
+                )}
+
+                {/* Attitudes - how NPC reacts to different approaches */}
+                {npc.attitudes && (
+                    <NPCSubSection title="How They React to Players" color="green">
+                        <div className="space-y-2">
+                            {npc.attitudes.map((att, i) => (
+                                <div key={i} className="flex gap-2 text-sm">
+                                    <span className={`flex-shrink-0 px-2 py-0.5 rounded text-xs font-bold ${
+                                        att.approach === 'Friendly' ? 'bg-green-800 text-green-200' :
+                                        att.approach === 'Threatening' ? 'bg-red-800 text-red-200' :
+                                        att.approach === 'Deceptive' ? 'bg-yellow-800 text-yellow-200' :
+                                        att.approach === 'Respectful' ? 'bg-blue-800 text-blue-200' :
+                                        att.approach === 'Flattery' ? 'bg-pink-800 text-pink-200' :
+                                        att.approach === 'Urgent' ? 'bg-orange-800 text-orange-200' :
+                                        att.approach === 'Humorous' ? 'bg-cyan-800 text-cyan-200' :
+                                        'bg-slate-700 text-slate-200'
+                                    }`}>{att.approach}</span>
+                                    <span className="text-green-100/70">{att.reaction}</span>
+                                </div>
+                            ))}
+                        </div>
+                    </NPCSubSection>
+                )}
+
+                {/* Player Questions - what players commonly ask this NPC */}
+                {npc.playerQuestions && (
+                    <NPCSubSection title="What Players Will Ask" color="amber">
+                        <div className="space-y-3">
+                            {npc.playerQuestions.map((pq, i) => (
+                                <div key={i} className="bg-amber-950/30 border border-amber-600/20 rounded-lg p-3">
+                                    <p className="text-amber-300 text-sm font-semibold mb-1">"{pq.question}"</p>
+                                    <div className="bg-green-950/40 border-l-4 border-green-400/60 p-2 rounded-r mb-1">
+                                        <p className="text-green-200 text-sm italic">{pq.answer}</p>
+                                    </div>
+                                    {pq.dmNote && (
+                                        <p className="text-purple-300/70 text-xs mt-1">DM: {pq.dmNote}</p>
+                                    )}
+                                </div>
+                            ))}
+                        </div>
+                    </NPCSubSection>
+                )}
+
+                {/* Do Not Reveal - things this NPC doesn't know */}
+                {npc.doNotReveal && (
+                    <NPCSubSection title="Do NOT Reveal" color="red">
+                        <ul className="space-y-1">
+                            {npc.doNotReveal.map((item, i) => (
+                                <li key={i} className="text-red-200/80 text-sm flex gap-2">
+                                    <span className="text-red-400 flex-shrink-0">✗</span>
+                                    <span>{item}</span>
+                                </li>
+                            ))}
+                        </ul>
+                    </NPCSubSection>
                 )}
             </div>
         );
@@ -157,11 +227,25 @@
               ],
               roleplay: [
                 {
-                  name: 'C1e7i5 ("Cletis")',
+                  name: 'C1e7i5 ("Cletis" - pronounced Clee-tiss)',
                   race: 'Rogue Quadrone Modron',
-                  appearance: 'A cube-shaped body about the size of a man\'s torso with a face on the front. Bipedal with skinny, elongated arms and legs. Metallic skin. Wears a cloak and hood to move unnoticed at night.',
-                  personality: 'Corrupted by chaos energy but still bound to logical, orderly ways. It has independently decided to start a war between Mechanus and Melvaunt by luring armed pursuers through a portal. It kills according to a precise timetable and leaves puzzle-clues because its modron instincts demand order even in murder.',
-                  quote: 'Very well.'
+                  appearance: 'A cube-shaped body about the size of a man\'s torso with a face on the front. Bipedal with skinny, elongated arms and legs. Metallic skin. Wears a cloak and hood to move unnoticed at night. Can fly. Has truesight.',
+                  personality: 'Corrupted by chaos energy but still bound to logical, orderly ways. It has independently decided to start a war between Mechanus and Melvaunt by luring armed pursuers through a portal. It kills according to a precise timetable and leaves puzzle-clues because its modron instincts demand order even in murder. It cannot simply walk into town and randomly slaughter people - its modron nature demands an elaborate, logical plan.',
+                  quote: 'Very well.',
+                  doNotReveal: [
+                    'The killer is a modron/construct until the lighthouse finale - keep it as "a cloaked figure" throughout.',
+                    'C1e7i5\'s full plan (luring pursuers through the portal to start a war) - players should only piece this together at the very end.',
+                    'The killer can fly - only hint at this through clues like "the coins fell from the sky" and the crossbow shot from an unseen position.',
+                    'The portal to Mechanus and the modron invasion - this is the big reveal at the finale.'
+                  ],
+                  attitudes: [
+                    { approach: 'DM Reference Only', reaction: 'Players do NOT interact with C1e7i5 directly until the finale. This guide is for YOU to understand its motivations so you can narrate its actions consistently.' }
+                  ],
+                  playerQuestions: [
+                    { question: 'What was the killer\'s motive? (players will speculate)', answer: 'Let them speculate freely! The truth is stranger than anything they\'ll guess. Drop subtle hints: the precision of the timing, the puzzles being logical rather than taunting, the strange metallic caltrops.', dmNote: 'If players guess "construct" or "modron" early, have NPCs react with disbelief. The mystery is part of the fun.' },
+                    { question: 'Why does the killer leave clues/puzzles?', answer: 'C1e7i5\'s modron instincts for law and order can\'t be suppressed. It is literally incapable of random slaughter. Everything must follow a pattern, a logic, a schedule. The puzzles are not taunts - to C1e7i5 they are simply... proper procedure.', dmNote: 'This is a great detail to hint at through Eledstra: "This isn\'t like any killer I\'ve seen. It\'s almost... methodical. Mechanical."' },
+                    { question: 'How does it keep escaping?', answer: 'C1e7i5 can fly (players shouldn\'t know this yet). It always attacks from above or from concealment, then flies to rooftops. Passive Perception 21+ is the only way to catch a glimpse.', dmNote: 'At the marketplace, the crossbow comes from an unseen elevated position. At the temple, it crashes through the SKYLIGHT from above.' }
+                  ]
                 }
               ],
               mechanics: [
@@ -196,11 +280,27 @@
                 { title: 'DC 13 Perception', details: 'Notice a torn purse and scattered gold/silver coins in the muck. C1e7i5 dropped these from above to create the distraction.' },
                 { title: 'Layout', details: 'The alley entrance is ~30 feet from the tavern door. The brawl is in Alley A. The murder happens in the opposite alley across the street (Area C).' }
               ],
+              roleplay: [
+                {
+                  name: 'Drunken Sailors (6 brawlers)',
+                  race: 'Human (various)',
+                  appearance: 'Scruffy, reeking of ale, rolling in the filth of the alley. Fighting over scattered coins.',
+                  personality: 'Belligerent drunks who are fighting over coins that "fell from the sky." Not hostile to the party - they\'re too busy fighting each other. Once subdued, they become sheepish and cooperative (or pass out).',
+                  quote: 'I seen it first! No you didn\'t! It hit me in the head! The gods want ME to have it!',
+                  playerQuestions: [
+                    { question: 'Where did the money come from?', answer: '"It just... fell! Right out of the sky! *hic* Like the gods themselves were throwin\' coin at us! Landed right in the middle of all of us. I seen it first!"', dmNote: 'They\'re telling the truth - C1e7i5 dropped the coins from the rooftop. None of them thought to look up.' },
+                    { question: 'Did you see anyone else in the alley? On the rooftops?', answer: '"See anyone? I can barely see MY OWN HAND right now! *waves hand in front of face* Wait, is that my hand? *hic*"', dmNote: 'They are way too drunk to be useful witnesses. Disadvantage on all saves. They saw nothing.' },
+                    { question: 'Did you hear the scream?', answer: '"Scream? Oh, THAT. Yeah, heard somethin\'. Figured it was Old Marge havin\' words with her husband again. *hic* Happens every night round about this time."', dmNote: 'They heard the murder victim\'s scream but dismissed it as normal neighborhood noise. They can confirm the timing (right at 8 bells) if asked specifically.' },
+                    { question: 'Can you come with us / be witnesses?', answer: '"Go WHERE? I can barely stand! *tries to stand, falls over* ...maybe in a minute."', dmNote: 'They\'re unreliable witnesses at best. Eledstra knows this but they can at least confirm the party was in the OTHER alley when the murder happened, providing an alibi.' }
+                  ]
+                }
+              ],
               dmTips: [
                 'Don\'t let the brawl scene take too long - it\'s just a distraction. Give players 1-2 rounds to settle things.',
                 'Some characters may want to investigate the brawl, others may ignore it. Characters who don\'t go to the alley start closer to the murder scene (Area B).',
                 'The money fell from the sky (C1e7i5 can fly). Nobody saw anything. No one has reason to look up.',
-                'Just when the players think the excitement is over - that\'s when you hit them with the SCREAM.'
+                'Just when the players think the excitement is over - that\'s when you hit them with the SCREAM.',
+                'The sailors make great comic relief before the horror hits. Play them as harmless, bumbling drunks.'
               ],
               faq: [
                 { q: 'What if the players ignore the brawl entirely?', a: 'That\'s fine! They\'ll be closer to the murder scene when the scream happens. Characters who skipped the brawl start in Area B on the map.' },
@@ -248,11 +348,33 @@
               ],
               roleplay: [
                 {
-                  name: 'Sergeant Eledstra',
+                  name: 'Sergeant Eledstra (eh-LED-strah)',
                   race: 'Human (late middle age)',
-                  appearance: 'Tall, thin, and lanky with a shock of unruly white hair that she runs her fingers through constantly when thinking. Keen blue eyes.',
-                  personality: 'A decent woman who takes her job of protecting ordinary citizens seriously. Very bad at political games (why she\'s only a Sergeant despite years of service). Has +8 Wisdom (Insight). Makes a show of writing down everything the characters say.',
-                  quote: 'You know, in another life, you\'d have made an excellent criminal.'
+                  appearance: 'Tall, thin, and lanky with a shock of unruly white hair that she runs her fingers through constantly when thinking. Keen blue eyes. Wears the uniform of a Watch officer.',
+                  personality: 'A decent woman who takes her job of protecting ordinary citizens seriously. Very bad at political games (why she\'s only a Sergeant despite years of service). Has +8 Wisdom (Insight). Makes a show of writing down everything the characters say. She already feels deeply guilty about not getting here in time to stop the first murder.',
+                  quote: 'You know, in another life, you\'d have made an excellent criminal.',
+                  attitudes: [
+                    { approach: 'Friendly', reaction: 'Opens up quickly. Shares information freely. Offers the potions of healing. Treats the party as partners, not subordinates.' },
+                    { approach: 'Respectful', reaction: 'Appreciates professionalism. Fast-tracks the deputization. May share her personal worry that she\'s "getting too old for this."' },
+                    { approach: 'Threatening', reaction: 'Unimpressed - she\'s dealt with tougher criminals than you. Reminds you she has 8 armed guards right here. But she\'s practical - if you have useful info, she\'ll listen despite the attitude.' },
+                    { approach: 'Deceptive', reaction: 'She has +8 Insight - lying to her is very hard. If she catches a lie, she becomes suspicious but professional. No potions of healing offered. May send a guard to "keep an eye" on the party.' },
+                    { approach: 'Humorous', reaction: 'Cracks a weary smile. "I appreciate the levity. Gods know we could use some tonight." She warms up and becomes more candid.' }
+                  ],
+                  playerQuestions: [
+                    { question: 'What do you know about the killer?', answer: '"Not much, I\'m afraid. Earlier tonight a note was delivered to the Watch station - rambling, barely coherent. But some letters were capitalized oddly. I realized they spelled EIGHT BELLS BY NARWHAL. I grabbed my guards and ran, but..." *runs fingers through hair* "...we were too late."', dmNote: 'She is genuinely distraught. Let the guilt show - she blames herself.' },
+                    { question: 'Can we see the note that was sent to the Watch?', answer: '"I have it here." *produces a folded parchment* "Strange handwriting - almost inhumanly precise. The madman promised to kill someone tonight and I nearly missed it buried in the evening reports."', dmNote: 'She confirms the handwriting matches the note found on the body. Both are "blocky, precise, almost mechanical."' },
+                    { question: 'Who was the victim?', answer: '"An ordinary dockworker. Mid-twenties. No enemies that I know of, no debts, no trouble with the law. Just an unlucky soul who walked down the wrong alley at the wrong time." *shakes her head* "That\'s what bothers me. This wasn\'t personal. It was... scheduled."', dmNote: 'The victim\'s identity is not important to the plot. C1e7i5 chose him because his routine was predictable.' },
+                    { question: 'Why should we help? / What\'s in it for us?', answer: '"The Watch can offer standard pay plus a hazard stipend. And I promise you - if you prevent any more murders tonight, I will personally ensure the Council of Lords hears about it. That kind of recognition goes a long way in Melvaunt."', dmNote: 'This is genuine. If both NPCs are saved, the party earns Two Points of Influence in Melvaunt.' },
+                    { question: 'Is this related to anything else happening in the city?', answer: '"Not that I know of. Melvaunt has its share of trouble - political games between the Council families, the usual dockside violence - but this is different. This is... methodical. Planned. Almost like clockwork." *pauses, puzzled by her own words*', dmNote: 'Her "clockwork" comment is an unconscious clue about the modron nature of the killer. Don\'t overplay it, just let it land.' },
+                    { question: 'Can you send guards with us?', answer: '"I wish I could. But my patrol is green recruits - they\'d slow you down more than help. And frankly, I need them here to secure this scene and calm the neighborhood. You lot are clearly more capable than my boys." *hands over the writ* "This makes it official. You have my authority."', dmNote: 'Eledstra stays behind at each scene. She shows up ~15 minutes after each fight to assess the aftermath.' },
+                    { question: 'What can you tell us about the marketplace?', answer: '"It\'s the heart of Melvaunt. Best metalwork this side of Mithral Hall. Even at night there\'s plenty of trade happening - never truly closes. If you\'re looking for an adamantine blacksmith, that\'s where you\'ll find one. Head straight through the center of town, can\'t miss it."', dmNote: 'She gives basic directions. The marketplace is about 20 minutes\' walk from the docks.' },
+                    { question: 'Have there been any strange sightings? Cloaked figures?', answer: '"Nothing that stood out from the usual late-night characters. Although..." *thinks* "...the desk sergeant mentioned the note appeared on the counter without anyone seeing who left it. That\'s unusual - our station isn\'t exactly unguarded."', dmNote: 'C1e7i5 used its cloak and the shift-change chaos to deliver the note unnoticed. Nobody saw it.' }
+                  ],
+                  doNotReveal: [
+                    'The identity of the killer (she genuinely doesn\'t know).',
+                    'Any information about modrons, Mechanus, or portals - she has no knowledge of these things.',
+                    'The full pattern of the killings (one per hour, every hour) - she suspects it but hasn\'t confirmed it yet. Let the players figure this out.'
+                  ]
                 }
               ],
               mechanics: [
@@ -289,15 +411,32 @@
                 { title: 'Option 2: Last-Second Save (some succeed)', details: 'Find Boltac mere seconds before 9 bells. Only a few words to explain. Boltac + finders start in Area A, other successes in Area B, failures in Area C.' },
                 { title: 'Option 3: Too Late (none succeed)', details: 'Don\'t find Boltac before 9 bells. Boltac starts in Area A alone. Successes in Area B, failures in Area C.' }
               ],
+              roleplay: [
+                {
+                  name: 'Marketplace Vendors & Bystanders',
+                  race: 'Various',
+                  appearance: 'A mix of merchants, craftsmen, and late-night buyers. Some are packing up stalls, others are deep in haggling. The air smells of smoke, hot metal, and spiced food.',
+                  personality: 'Melvaunt merchants are business-minded and direct. They respond best to coin and clear questions. They\'re suspicious of strangers asking odd questions at night but not hostile.',
+                  quote: 'If it isn\'t for sale in Melvaunt, you don\'t want to buy it!',
+                  playerQuestions: [
+                    { question: 'Do you know an adamantine blacksmith? / Where can I find a dwarf who works adamantine?', answer: '"Adamantine? That\'d be old Boltac. Thurdingard. Best in the business, though you\'d never know it from his manners. His stall is over that way, near the gnome with the walking tin cans. Surprised he\'s here this late, actually."', dmNote: 'This is the key info players need. If they specify adamantine AND dwarf AND blacksmith, this is practically an auto-success (+5 bonus to their check).' },
+                    { question: 'Have you seen anything suspicious tonight?', answer: '"Suspicious? Define suspicious. Half the people here at this hour are suspicious. That said... there was a cloaked fellow earlier, moving kind of strange. Stiff-like. Didn\'t buy anything, just... watched people. Haven\'t seen him since."', dmNote: 'This is C1e7i5 scouting the marketplace. The vendor can\'t describe more than "cloaked, moved oddly, very thin limbs." It was dark and they didn\'t get a good look.' },
+                    { question: 'We\'re with the City Watch - there\'s been a murder.', answer: '"Murder? Gods above. *looks around nervously* Well, the Watch doesn\'t usually come down here at night. Must be serious. What do you need?"', dmNote: 'Showing Eledstra\'s writ makes vendors much more cooperative. They\'ll point to Boltac\'s stall immediately and may even help spread the word.' },
+                    { question: 'What can you tell me about the marketplace?', answer: '"Finest market north of the Moonsea! Metalwork is our specialty - you won\'t find better blades, armor, or ore anywhere in Faerun. The livestock pen is closed for the night, thank the gods, so it\'s just honest traders here."', dmNote: 'The "livestock pen" is Melvaunt\'s slave market. Don\'t dwell on it unless players ask - it\'s closed tonight and not relevant to the plot.' }
+                  ]
+                }
+              ],
               dmTips: [
                 'The slave market ("livestock pen") is currently closed, so the marketplace only has goods traders - this makes the search somewhat easier.',
                 'Let players be creative with their searches. The +5 bonus for using victim info rewards players who paid attention to the puzzle.',
                 'If two characters team up on the same approach, they get advantage but reduce total number of checks - this could backfire if the party needs multiple successes.',
-                'The positioning outcomes (Options 1-3) determine starting positions for the combat encounter and whether players can talk to Boltac beforehand.'
+                'The positioning outcomes (Options 1-3) determine starting positions for the combat encounter and whether players can talk to Boltac beforehand.',
+                'Marketplace vendors are a great source of flavor. Let them give directions, gossip, and react to the urgency. One vendor mentioning a "cloaked figure" can build tension.'
               ],
               faq: [
                 { q: 'Can they just shout "Is there an adamantine blacksmith here?"', a: 'That could work as a Charisma (Performance or Persuasion) check at DC 15. If they use specific clues like "dwarven adamantine blacksmith," give the +5 bonus (DC 10).' },
-                { q: 'How much time do they have?', a: 'They arrive about 15 minutes before 9 bells. Not enough for an exhaustive search, but enough to be smart about it. Each check represents a different approach to searching.' }
+                { q: 'How much time do they have?', a: 'They arrive about 15 minutes before 9 bells. Not enough for an exhaustive search, but enough to be smart about it. Each check represents a different approach to searching.' },
+                { q: 'Can they buy anything at the marketplace?', a: 'There\'s no time for shopping! But if a player REALLY wants to grab something quick (a torch, rope, etc.), let them spend an action and a few gold. Don\'t let it slow things down.' }
               ]
             },
             {
@@ -312,18 +451,58 @@
               ],
               roleplay: [
                 {
-                  name: 'Boltac Thurdingard',
+                  name: 'Boltac Thurdingard (BOWL-tack THUR-din-guard)',
                   race: 'Dwarf (late middle age)',
-                  appearance: 'Obviously getting on in years but still strong enough to stand in a hot forge all day. Arranged on his table are a number of adamantine weapons.',
-                  personality: 'Cantankerous even by dwarven standards, but fiercely loyal once you earn his respect. Unmatched knowledge of adamantine. Secretly prefers wine to ale but would never admit it - claims "using elven wine to quench hot steel is a special technique only he has mastered."',
-                  quote: 'Don\'t make me give you a live demonstration of my wares! There\'s no discount for your medical expenses.'
+                  appearance: 'Obviously getting on in years but still strong enough to stand in a hot forge all day. Thick forearms scarred from forge-work. Arranged on his table are a number of adamantine weapons. A wineskin hangs at his side.',
+                  personality: 'Cantankerous even by dwarven standards, but fiercely loyal once you earn his respect. Unmatched knowledge of adamantine. Secretly prefers wine to ale but would never admit it - claims "using elven wine to quench hot steel is a forge technique only he has mastered." He\'s here at night because a supposed buyer named "Callanwolde" arranged a late meeting (fake - set up by C1e7i5).',
+                  quote: 'Don\'t make me give you a live demonstration of my wares! There\'s no discount for your medical expenses.',
+                  attitudes: [
+                    { approach: 'Friendly', reaction: 'Suspicious at first ("I\'m waiting for a customer, not looking for friends") but warms up if you show genuine interest in his craft or if you\'re clearly warriors who appreciate fine weapons.' },
+                    { approach: 'Respectful', reaction: 'Best approach. Compliment his adamantine work and he\'ll talk your ear off. "Finally, someone with taste! Feel the balance on that longsword - you won\'t find finer."' },
+                    { approach: 'Threatening', reaction: 'Absolutely the wrong move. He picks up an adamantine longsword and dares you to try it. "I\'ve been swinging steel since before your grandparents were born, lad. Think carefully."' },
+                    { approach: 'Urgent', reaction: 'He\'s skeptical of panic. "Calm down. Nobody murders a dwarf in the middle of a marketplace. I\'ve got a customer to meet." Needs hard evidence (note, writ) to take you seriously.' },
+                    { approach: 'Deceptive', reaction: 'Pretending to be "Callanwolde" his contact is DC 20 Deception and cannot be lowered. He\'ll ask specific questions about the order that the party can\'t answer.' }
+                  ],
+                  playerQuestions: [
+                    { question: 'Who are you waiting for?', answer: '"A buyer named Callanwolde. Sent word through an intermediary - wants a large shipment of adamantine arms and armor. Had to be tonight, which is unusual, but the coin sounded right. Big contract could keep my forge busy for months."', dmNote: 'Callanwolde doesn\'t exist. C1e7i5 arranged this to ensure Boltac would be in the right place. If players point out it might be a trap, that helps convince him (reduces Persuasion DC).' },
+                    { question: 'What do you know about adamantine?', answer: '*eyes light up* "Finest metal in all creation! Mined from the deepest veins, harder than steel, lighter than you\'d think. Most smiths can\'t work it properly - the tempering alone takes years to master. I learned from my father, who learned from his father, all the way back to the forges of Mithral Hall."', dmNote: 'He will happily lecture about adamantine for as long as you let him. Good for building rapport before the combat.' },
+                    { question: 'Someone is trying to kill you!', answer: '"Kill ME? Ha! I\'d like to see them try. I\'ve got enough weaponry here to arm a small militia, and I know how to use every piece." *crosses his arms stubbornly* "Now unless you\'ve got proof of this alleged threat, I\'m waiting for my customer."', dmNote: 'He won\'t just take their word for it. Show the bloody note (-5 DC) or Eledstra\'s writ (-5 DC) to convince him. Raw DC is 20 Persuasion.' },
+                    { question: 'Can we borrow some of your weapons?', answer: '"BORROW? These are masterwork adamantine pieces! Each one worth more than you make in a year!" *pauses, then grumbles* "But... if you\'re really here to protect me... fine. You break it, you buy it. And they come back after."', dmNote: 'If Boltac is convinced of the danger, he freely lends weapons. They teleport back to his forge if taken more than a mile away.' },
+                    { question: 'What\'s in the wineskin?', answer: '*defensive* "It\'s... a specialized quenching solution. Very technical. You wouldn\'t understand." *takes a swig* "Elven vintage. For the forge. The tannins do something to the crystal structure of the—look, it\'s a TRADE SECRET, all right?"', dmNote: 'He\'s drinking wine and is embarrassed about it. A fun RP moment - dwarves are "supposed" to drink ale. He gets flustered if teased about it.' },
+                    { question: 'Have you noticed anything strange tonight?', answer: '"Strange? This is Melvaunt - everything is strange after dark. The only unusual thing is that my buyer is late. Most people don\'t keep a dwarf waiting, especially not for adamantine." *glances around nervously*', dmNote: 'He genuinely hasn\'t noticed anything. C1e7i5 is watching from a concealed elevated position.' },
+                    { question: 'Do you know anything about constructs/golems? (after the Gondsmen attack)', answer: '"I\'m a BLACKSMITH, not a tinkerer! Ask the gnome about her mechanical abominations. Although..." *examines a destroyed Gondsman* "...the metalwork on these joints is unusual. This alloy... it\'s not something I\'ve seen before. Whoever built the original design knew what they were doing."', dmNote: 'If players push this, Boltac admits the alloy reminds him of something he once saw in a book about Mechanus. This is a subtle clue but he can\'t elaborate further.' }
+                  ],
+                  doNotReveal: [
+                    'The identity of the killer or that it\'s a construct/modron.',
+                    'Boltac has no knowledge of who set up the fake "Callanwolde" meeting.',
+                    'He doesn\'t know about the other murders or Eledstra unless the players tell him.'
+                  ]
                 },
                 {
-                  name: 'Ellywicket "Elly" Klemwocket',
+                  name: 'Ellywicket "Elly" Klemwocket (ell-ee WICK-et KLEM-wah-ket)',
                   race: 'Gnome (young)',
-                  appearance: 'Bright red hair. Wears a holy symbol of Gond. Proprietor of the Gondsmen stall.',
-                  personality: 'A bright young priestess of Gond who got her love of tinkering from her adventurer uncle Glimnock. Very proud of her work and extremely upset when her Gondsmen go haywire. She\'s a noncombatant (won\'t destroy her own creations) but will heal unconscious characters.',
-                  quote: 'Why would you do it yourself when you can build something... or someone... to do it for you?'
+                  appearance: 'Bright red hair, often singed at the tips. Wears a holy symbol of Gond proudly. Grease-stained apron. Surrounded by her Gondsmen constructs.',
+                  personality: 'A bright young priestess of Gond who got her love of tinkering from her adventurer uncle Glimnock, who filled her head with stories of ancient Lantan. Takes immense pride in her Gondsmen. Extremely upset and confused when they go haywire. She\'s a noncombatant (can\'t bring herself to destroy her own creations) but will heal unconscious characters.',
+                  quote: 'Why would you do it yourself when you can build something... or someone... to do it for you?',
+                  attitudes: [
+                    { approach: 'Friendly', reaction: 'Immediately chatty and enthusiastic. Will talk non-stop about her Gondsmen, Gond, her uncle\'s adventures, and her dreams of building a "true Gondsman" someday.' },
+                    { approach: 'Threatening', reaction: 'Shrinks back and her Gondsmen instinctively position themselves between her and the threat. She\'s not a fighter and knows it.' },
+                    { approach: 'Curious', reaction: 'Absolutely delighted. "Oh, you want to know how they WORK? Well, it starts with the harmonic resonance crystal in the thorax..." She can go on for hours.' },
+                    { approach: 'Accusatory', reaction: 'Genuinely hurt and panicked. "I would NEVER! They\'re my children - well, not children exactly, but - I built every single one by hand! Something MADE them do this!"' }
+                  ],
+                  playerQuestions: [
+                    { question: 'What made your Gondsmen go crazy?', answer: '"I don\'t KNOW! Nothing like this has ever happened! Their command crystals are tuned to my voice and my voice alone - they shouldn\'t respond to anyone else." *examines wreckage frantically* "Wait... there\'s residual energy in the control circuits. Something... overrode my frequency. But that would require..."', dmNote: 'She trails off, unable to explain it. If pressed: "Something with an incredibly powerful ability to interface with constructs." She does NOT conclude it\'s a modron - but this is a breadcrumb for observant players.' },
+                    { question: 'Could someone else control constructs like that?', answer: '"In theory? Certain powerful mages, or... well, there are creatures on other planes that are essentially living constructs. They\'d have a natural affinity for this kind of thing. My uncle Glimnock told me stories about the clockwork beings of Mechanus, but those are just..." *pauses* "...stories. Right?"', dmNote: 'THIS IS A MAJOR CLUE. Elly is the first NPC to mention Mechanus by name. Don\'t force it - let players catch it or not. If they latch onto it, she can describe modrons from her uncle\'s stories but as "fairy tales."' },
+                    { question: 'Can you help us fight?', answer: '"I... I can\'t destroy my own Gondsmen. I just can\'t. But if anyone gets hurt, I can help with that." *clutches holy symbol* "Gond guides my hands in healing as well as building."', dmNote: 'She has 3 Cure Wounds slots (1d8+4) and Spare the Dying. She heals party/Boltac after the fight and before leaving.' },
+                    { question: 'Tell me about your uncle Glimnock.', answer: '"Uncle Glim was a real adventurer! He traveled to the elemental planes, explored ruins of ancient Lantan, and once claimed he saw the Great Modron March - thousands of geometric creatures walking in perfect formation across the planes." *gets wistful* "He\'s retired now, but his stories made me want to build things."', dmNote: 'Another Mechanus/modron clue. The Great Modron March is a real event in D&D lore. Players who know their lore might perk up here.' },
+                    { question: 'What is Gond? / What do you worship?', answer: '"Gond is the Lord of All Smiths, the Wonderbringer! God of artifice, craft, and construction. We believe that creation is the highest form of devotion. Every gear I cut, every spring I wind, every Gondsman I bring to life - that\'s my prayer." *beams with pride*', dmNote: 'The temple of Gond has the mechanical clock tower that chimes throughout the adventure. Elly might mention this connection if asked about the bells.' },
+                    { question: 'Can you help with the puzzle/note?', answer: '"Oh! A puzzle? Let me see!" *adjusts tiny spectacles* "Hmm, the arrangement of numbers and letters reminds me of a cipher matrix. My uncle taught me a few - said adventurers encounter them all the time in dungeons..."', dmNote: 'Elly can help solve the Puzzle 2 (Grid) if players are stuck. She approaches it mechanically and can point out the matching corner numbers.' }
+                  ],
+                  doNotReveal: [
+                    'She has no idea who or what caused her Gondsmen to malfunction.',
+                    'She does NOT know about modrons firsthand - only from her uncle\'s "stories."',
+                    'She is genuinely innocent and has no connection to C1e7i5 or the murders.'
+                  ]
                 }
               ],
               mechanics: [
@@ -403,11 +582,35 @@
               description: 'Detailed roleplay encounter with Zellani. Getting her cooperation is important but the attack will happen regardless at 10 bells.',
               roleplay: [
                 {
-                  name: 'Zellani',
+                  name: 'Zellani (ZELL-ah-nee)',
                   race: 'Half-Elf',
-                  appearance: 'Tall and muscular with jet-black hair. A deep scar on one cheek that looks like it was made by a sword (from her younger days as a mercenary). She does not speak of her past.',
-                  personality: 'A priestess of Loviatar working her way up the ranks. Adheres to Loviatar\'s teachings and considers herself above ordinary folk because of her duty to administer pain and torment. Overconfident - making her an easier target for C1e7i5. Not easily cowed (priestesses of Loviatar are used to pain).',
-                  quote: 'I shall give you the pain you so richly deserve.'
+                  appearance: 'Tall and muscular with jet-black hair. A deep scar on one cheek that looks like it was made by a sword (from her younger days as a mercenary - she does not speak of her past). Her face is otherwise beautiful. She speaks from behind a metal slat in the door.',
+                  personality: 'A priestess of Loviatar (Maiden of Pain) working her way up the temple ranks. Adheres to Loviatar\'s teachings and considers herself above ordinary folk because of her sacred duty to administer pain and torment. Overconfident - making her an easier target for C1e7i5. Not easily cowed (priestesses of Loviatar are used to pain). She is the only half-elven priestess at this temple and tends the shrine every night at 10 bells.',
+                  quote: 'I shall give you the pain you so richly deserve.',
+                  attitudes: [
+                    { approach: 'Respectful', reaction: 'The best approach. Address her as "Priestess" or acknowledge Loviatar\'s power. She opens up slightly: "At least you understand proper deference." DC 10 Persuasion.' },
+                    { approach: 'Flattery', reaction: 'She sees through obvious flattery but responds well to genuine awe of the temple or acknowledgment of her strength. "The temple IS impressive, isn\'t it? Loviatar provides for her faithful."' },
+                    { approach: 'Threatening', reaction: 'Terrible idea. She LAUGHS. "You think to threaten a priestess of the Maiden of Pain? I have endured torments you cannot imagine. Come back when you have something... interesting... to offer." DC 15 Intimidation.' },
+                    { approach: 'Urgent', reaction: 'She\'s dismissive of panic. "The hysterics of the common folk do not concern me. I am perfectly safe within these walls." Showing EVIDENCE is the key to breaking through her arrogance.' },
+                    { approach: 'Deceptive', reaction: 'She\'s suspicious by nature. "An interesting tale. And you expect me to simply take your word for it?" DC 15 Deception. She can sense when something feels off.' },
+                    { approach: 'Humorous', reaction: 'Disdainful. "I do not have time for jests. The faithful do not suffer fools." She almost closes the door.' }
+                  ],
+                  playerQuestions: [
+                    { question: 'Someone is coming to kill you tonight!', answer: '"Kill me? In my own temple?" *laughs coldly* "You clearly do not understand what it means to serve the Maiden of Pain. I have endured things that would break lesser souls. And this temple has... protections... that outsiders know nothing about."', dmNote: 'She\'s overconfident. This is her fatal flaw. She genuinely believes she\'s safe inside the temple. She doesn\'t know C1e7i5 is ALREADY inside.' },
+                    { question: 'What is Loviatar? / What do you worship?', answer: '"Loviatar is the Maiden of Pain, the Willing Whip. Pain is not punishment - it is enlightenment. Through suffering, we achieve clarity. Through torment, we find truth." *touches her scar* "I was a mercenary once. I knew only the crude pain of battle. Loviatar showed me that pain can be... refined. Beautiful, even."', dmNote: 'This is her one moment of vulnerability. She won\'t elaborate on her mercenary past. If players show genuine curiosity (not judgment) about Loviatar, she warms up slightly.' },
+                    { question: 'Can we come in and protect you?', answer: '"The authority of the City Watch does not extend to entering temples whenever they please." *considers* "However... if you are offering to serve as a... vigil... I suppose I could permit you in the main hall. But you will touch NOTHING and go NOWHERE else. Am I clear?"', dmNote: 'This is the best outcome. She lets them guard her from the main hall while she tends the shrine at the altar (directly under the skylight where C1e7i5 will crash through).' },
+                    { question: 'What protections does the temple have?', answer: '"The faithful of Loviatar are never truly defenseless. Let us say that if someone is foolish enough to attack this place, they will find that the Maiden of Pain has servants in... other places... who would be eager to answer my call." *smiles knowingly*', dmNote: 'She\'s referring to her ability to summon devils (lemures and imps bound to Loviatar). She uses ALL her spell slots for this when the attack comes, leaving only Sacred Flame cantrip.' },
+                    { question: 'Have you noticed anything strange tonight?', answer: '"This is a temple, not a watchtower. I have been attending to the rites of the evening. The only strange thing I\'ve noticed tonight is a group of armed vagrants banging on my door." *raises an eyebrow*', dmNote: 'She genuinely hasn\'t noticed C1e7i5 hiding inside the temple. The modron entered earlier and has been biding its time until 10 bells.' },
+                    { question: 'That scar on your face - how did you get it?', answer: '*her expression hardens and her hand instinctively moves to her cheek* "That... is not your concern. It was from another life. I am a servant of Loviatar now, and the past is the past." *voice drops to a whisper* "Some wounds teach us who we truly are."', dmNote: 'She got the scar as a mercenary before joining the temple. She absolutely will not share details. If a player persists, she shuts down the conversation entirely. This is her one hard boundary.' },
+                    { question: 'Do you know anything about the murders tonight?', answer: '"Murders? In Melvaunt?" *waves dismissively* "People die on the docks every night. Sailors, drunkards, fools. Why should this concern me?"', dmNote: 'She is completely unaware of the night\'s events. If the players explain the pattern (hourly killings, puzzles), she becomes slightly less dismissive: "That is... unusual. Methodical, even. Still, I am safe here."' },
+                    { question: 'What if we need to search the temple?', answer: '"Absolutely not. This is a house of worship, not a crime scene for your investigation. You may stand guard in the main hall, or you may leave. Those are your options."', dmNote: 'She will NOT allow a search. If players insist, she closes the door. They\'d need to sneak in via the side door (DC 15 thieves\' tools) and hide behind curtains.' }
+                  ],
+                  doNotReveal: [
+                    'She has no knowledge of the killer, modrons, Mechanus, or the night\'s events.',
+                    'She does not know C1e7i5 is already hiding inside her temple.',
+                    'Details of her mercenary past - she shuts down completely if pressed.',
+                    'The exact nature of her "protections" (devil summoning) until the combat actually begins.'
+                  ]
                 }
               ],
               mechanics: [
