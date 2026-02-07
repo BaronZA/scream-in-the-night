@@ -477,7 +477,7 @@
             },
             {
               id: 'enc1', title: 'Enc 1: Caltrops Fight', type: 'combat', time: '8:00 PM',
-              enemies: [{name:'Caltrop Swarm', count:5, hp:22, ac:14}],
+              enemies: [{name:'Caltrop Swarm', count:5, hp:22, ac:14, speed:'0ft, fly 30ft', attacks:['Cloud of Pain: +4, reach 0ft, 5 (2d4) piercing; 2 (1d4) if below half HP'], traits:['Damage Resist: bludg/pierc/slash','Blindsight 10ft','Antimagic Susceptibility']}],
               description: 'The clock strikes 8 bells and a scream rings out. C1e7i5 has killed a dockworker and left animated caltrops as a trap. The modron watches from the rooftop.',
               readAloud: [
                 {label: '8 Bells Chime - The Scream', text: 'The elaborate mechanical clock tower near the temple of Gond is audible from most places in the city. Right on cue, it begins to chime eight bells. As the final peal fades into silence, you hear a scream from the opposite side of the street.'},
@@ -622,7 +622,7 @@
             },
             {
               id: 'enc3', title: 'Enc 3: Save Boltac', type: 'combat', time: '9:00 PM',
-              enemies: [{name:'Gondsman', count:8, hp:22, ac:13}, {name:'C1e7i5', count:1, hp:49, ac:16}],
+              enemies: [{name:'Gondsman', count:8, hp:22, ac:13, speed:'30ft', attacks:['Slam: +3, 5ft, 4 (1d6+1) bludgeoning'], traits:['Resist non-adamantine bludg/pierc/slash','Immune: poison, psychic','Blindsight 30ft','Athletics +6']}, {name:'C1e7i5', count:1, hp:49, ac:16, speed:'30ft, fly 30ft', attacks:['See C1e7i5 Assassin Strike mechanic below'], traits:['Truesight 120ft','Init 20 (loses ties)']}],
               npcs: [{name:'Boltac', hp:22, ac:13}],
               description: 'C1e7i5 takes control of a gnomish tinkerer\'s Gondsmen constructs to attack Boltac while preparing a crossbow shot. The characters must protect the dwarf and fight the constructs.',
               readAloud: [
@@ -842,7 +842,7 @@
             },
             {
               id: 'enc4', title: 'Enc 4: Temple Chaos', type: 'combat', time: '10:00 PM',
-              enemies: [{name:'Chaos Blight', count:6, hp:9, ac:12}, {name:'Chaos Bolter', count:3, hp:18, ac:13}, {name:'C1e7i5', count:1, hp:49, ac:16}],
+              enemies: [{name:'Chaos Blight', count:6, hp:9, ac:12, speed:'20ft', attacks:['Claws: +3, 5ft, 3 (1d4+1) piercing'], traits:['Blindsight 60ft']}, {name:'Chaos Bolter', count:3, hp:18, ac:13, speed:'30ft', attacks:['Claws: +3, 5ft, 6 (1d4+1) piercing','Chaotic Bolt: +3, 30/60ft, 8 (2d6+1) random energy (d6: acid/cold/fire/lightning/poison/thunder)'], traits:['Blindsight 60ft']}, {name:'C1e7i5', count:1, hp:49, ac:16, speed:'30ft, fly 30ft', attacks:['See Skylight Moment mechanic below'], traits:['Truesight 120ft','Init 20 (loses ties)']}],
               npcs: [{name:'Zellani', hp:25, ac:13}],
               description: 'C1e7i5 summons chaos creatures through planar rifts. Zellani summons devils to defend the temple. The characters fight chaos creatures while devils fight independently. After the creatures are defeated, C1e7i5 crashes through the skylight for a dramatic confrontation.',
               readAloud: [
@@ -884,6 +884,16 @@
             },
             {
               id: 'enc5', title: 'Enc 5: Rooftop Chase', type: 'skill-challenge', time: '10:15 PM',
+              portals: [
+                { plane: 'Ethereal', name: 'Ether Cyclone', description: 'Howling wind-like serpentine columns tear across the rooftops.', check: 'DC 10 Strength (Athletics) or fail to progress this turn.' },
+                { plane: 'Feywild', name: 'Rampant Growth', description: 'Clinging vines and poisonous thorns erupt from the rooftiles.', check: 'DC 10 Dexterity (Acrobatics) or fail + 3 (1d4+1) poison dmg. ALT: 7+ slashing or 3+ fire damage to cut/burn through.' },
+                { plane: 'Shadowfell', name: 'Despair', description: 'Ghostly hands reach up through the shadows, sapping life and will.', check: 'DC 10 Wisdom save or stop moving (overcome by despair). Repeat save each turn. 3 (1d6) necrotic/round while stopped.' },
+                { plane: 'Limbo', name: 'Chaos Bolters', description: 'Chaotic energy streaks from a rift — each character is hit by a bolt.', check: 'If hit: DC 10 Con save or grow a flailing extra limb of a different species (disappears end of next turn).' },
+                { plane: 'Beastlands', name: "Hunter's Maze", description: 'A thundering herd of spectral beasts and wild patterns of sound and color.', check: 'DC 10 Wisdom (Animal Handling, Perception, or Survival) to stay on the true path.' },
+                { plane: 'Abyss', name: 'Corruption', description: 'Gruesome hallucinations — mouths eating arms, betrayal paranoia, bloodlust, minor demon possession.', check: 'DC 10 Charisma check. Give each character a different corruption flavor.' },
+                { plane: 'Hades', name: 'Larvae', description: 'An endless stream of vile larvae. Everything appears gray and colorless.', check: 'Larva attack: +3, 3 (1d4+1) piercing. If hit: restrained. DC 9 Athletics or Acrobatics to break free.' },
+                { plane: 'Limbo', name: 'Power of the Mind', description: 'Limbs stop working — only mental force allows motion through this zone.', check: 'DC 10 Int to move another character, DC 15 to move yourself. Need 2 successful checks to exit. Getting stuck alone is bad.' }
+              ],
               description: 'A cinematic chase across the rooftops as C1e7i5 flees toward the lighthouse, tearing open planar rifts that create obstacles. This is ABSTRACT - no battle map, just zones.',
               readAloud: [
                 {label: 'Chase Begins', text: 'The cloaked figure takes off toward the glow of the lighthouse at the far end of the pier. The warehouses, taverns, and other buildings in this area are built so close together that you can actually run along the rooftops all the way down the length of the docks district.'},
@@ -1001,6 +1011,7 @@
           const [notes, setNotes] = useState(saved?.notes || { boltac: null, zellani: null, moments: [] });
           const [noteText, setNoteText] = useState('');
           const [showCombat, setShowCombat] = useState(false);
+          const [portalRoll, setPortalRoll] = useState(null);
           const [initiative, setInitiative] = useState(saved?.initiative || { entries: [], currentIndex: -1, round: 0, sorted: false });
           const defaultPlayers = { Paladin: '', Monk: '', Ranger: '', Warlock: '', Sorcerer: '', Barbarian: '' };
           const [players, setPlayers] = useState(saved?.players || defaultPlayers);
@@ -1356,10 +1367,27 @@
                                     return (
                                       <div key={enemy.name} className="bg-red-950/30 p-3 rounded border border-red-600/50 mb-3">
                                         <h4 className="text-red-300 font-semibold mb-2">{enemy.name}</h4>
-                                        <div className="grid grid-cols-2 gap-2 text-xs text-red-200/80 mb-3">
+                                        <div className="grid grid-cols-2 gap-2 text-xs text-red-200/80 mb-2">
                                           <span>AC: {enemy.ac}</span>
                                           <span>HP: {enemy.hp}</span>
                                         </div>
+                                        {enemy.speed && (
+                                          <div className="text-xs text-red-200/60 mb-2">Speed: {enemy.speed}</div>
+                                        )}
+                                        {enemy.attacks?.length > 0 && (
+                                          <div className="mb-2">
+                                            {enemy.attacks.map((atk, j) => (
+                                              <div key={j} className="text-xs text-red-100 bg-red-900/40 rounded px-2 py-1 mb-1 font-mono">⚔ {atk}</div>
+                                            ))}
+                                          </div>
+                                        )}
+                                        {enemy.traits?.length > 0 && (
+                                          <div className="flex flex-wrap gap-1 mb-2">
+                                            {enemy.traits.map((trait, j) => (
+                                              <span key={j} className="text-xs bg-red-900/30 text-red-300/70 rounded px-1.5 py-0.5 border border-red-700/30">{trait}</span>
+                                            ))}
+                                          </div>
+                                        )}
                                         {creatures.map(({key, name}) => {
                                           const currentHp = hp[key] || enemy.hp;
                                           const pct = (currentHp / enemy.hp) * 100;
@@ -1390,6 +1418,32 @@
                                   })}
                                 </div>
                               )}
+                            </div>
+                          )}
+                        </div>
+                      )}
+
+                      {/* Portal Randomizer */}
+                      {current.portals && (
+                        <div className="mb-4">
+                          <button
+                            onClick={() => {
+                              const idx = Math.floor(Math.random() * current.portals.length);
+                              setPortalRoll(current.portals[idx]);
+                            }}
+                            className="w-full bg-purple-900/50 hover:bg-purple-900/70 p-4 rounded-lg border-2 border-purple-500/60 text-purple-200 font-semibold flex items-center justify-center gap-3 transition-all"
+                          >
+                            <span className="text-xl">🎲</span>
+                            Roll Random Portal (d8)
+                          </button>
+                          {portalRoll && (
+                            <div className="mt-3 bg-purple-950/60 p-4 rounded-lg border border-purple-500/40">
+                              <div className="flex items-center gap-2 mb-2">
+                                <span className="px-2 py-0.5 bg-purple-800/60 text-purple-200 rounded text-xs font-semibold uppercase tracking-wider">{portalRoll.plane}</span>
+                                <h4 className="text-lg font-semibold text-purple-300">{portalRoll.name}</h4>
+                              </div>
+                              <p className="text-purple-100/90 text-sm mb-3 italic">{portalRoll.description}</p>
+                              <div className="text-sm text-purple-100 bg-purple-900/40 rounded px-3 py-2 font-mono">{portalRoll.check}</div>
                             </div>
                           )}
                         </div>
