@@ -100,11 +100,29 @@
         // Read-Aloud Block Component
         const ReadAloud = ({ texts }) => (
             <div className="space-y-3">
-                {texts.map((text, i) => (
-                    <div key={i} className="bg-amber-900/40 border-l-4 border-amber-400 p-4 rounded-r-lg italic text-amber-100/90 text-base leading-relaxed">
-                        {text}
-                    </div>
-                ))}
+                {texts.map((block, i) => {
+                    const isConditional = block.conditional;
+                    return (
+                        <div key={i}>
+                            {block.label && (
+                                <span className={`inline-block text-xs font-bold uppercase tracking-wider px-2 py-0.5 rounded-t mb-0 ${
+                                    isConditional
+                                        ? 'bg-orange-700/80 text-orange-100'
+                                        : 'bg-amber-700/80 text-amber-100'
+                                }`}>
+                                    {block.label}
+                                </span>
+                            )}
+                            <div className={`p-4 rounded-r-lg rounded-bl-lg italic text-base leading-relaxed ${
+                                isConditional
+                                    ? 'bg-orange-900/40 border-l-4 border-orange-400 text-orange-100/90'
+                                    : 'bg-amber-900/40 border-l-4 border-amber-400 text-amber-100/90'
+                            }`}>
+                                {block.text}
+                            </div>
+                        </div>
+                    );
+                })}
             </div>
         );
 
@@ -217,13 +235,157 @@
             );
         };
 
+        // Initiative Tracker Component
+        const InitiativeTracker = ({ initiative, setInitiative }) => {
+            const { entries, currentIndex, round, sorted } = initiative;
+
+            const updateEntry = (id, field, value) => {
+                setInitiative(prev => ({
+                    ...prev,
+                    entries: prev.entries.map(e => e.id === id ? { ...e, [field]: value } : e)
+                }));
+            };
+
+            const rollD20 = (id) => {
+                const roll = Math.floor(Math.random() * 20) + 1;
+                updateEntry(id, 'init', roll);
+            };
+
+            const sortAndStart = () => {
+                setInitiative(prev => ({
+                    ...prev,
+                    entries: [...prev.entries].sort((a, b) => b.init - a.init),
+                    currentIndex: 0,
+                    round: 1,
+                    sorted: true
+                }));
+            };
+
+            const nextTurn = () => {
+                setInitiative(prev => {
+                    const next = prev.currentIndex + 1;
+                    if (next >= prev.entries.length) {
+                        return { ...prev, currentIndex: 0, round: prev.round + 1 };
+                    }
+                    return { ...prev, currentIndex: next };
+                });
+            };
+
+            const prevTurn = () => {
+                setInitiative(prev => {
+                    const next = prev.currentIndex - 1;
+                    if (next < 0) {
+                        return { ...prev, currentIndex: prev.entries.length - 1, round: Math.max(1, prev.round - 1) };
+                    }
+                    return { ...prev, currentIndex: next };
+                });
+            };
+
+            const resetInit = () => {
+                setInitiative(prev => ({
+                    ...prev,
+                    entries: prev.entries.map(e => ({ ...e, init: 0 })),
+                    currentIndex: -1,
+                    round: 0,
+                    sorted: false
+                }));
+            };
+
+            return (
+                <div className="bg-cyan-950/30 border border-cyan-600/40 rounded-lg p-4">
+                    <h3 className="text-lg font-semibold text-cyan-300 mb-3 flex items-center gap-2 font-display">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                            <path d="M12 2v4m0 12v4m8.66-14.66l-2.83 2.83M6.17 17.83l-2.83 2.83M22 12h-4M6 12H2"/>
+                        </svg>
+                        Initiative Tracker
+                        {sorted && <span className="text-xs bg-cyan-700/60 px-2 py-0.5 rounded ml-2">Round {round}</span>}
+                    </h3>
+
+                    <div className="space-y-1.5">
+                        {entries.map((entry, idx) => {
+                            const isCurrent = sorted && idx === currentIndex;
+                            const bgColor = entry.isPlayer
+                                ? 'bg-blue-950/40 border-blue-600/30'
+                                : entry.isNPC
+                                ? 'bg-green-950/40 border-green-600/30'
+                                : 'bg-red-950/40 border-red-600/30';
+                            const textColor = entry.isPlayer ? 'text-blue-200' : entry.isNPC ? 'text-green-200' : 'text-red-200';
+
+                            return (
+                                <div key={entry.id} className={`flex items-center gap-2 p-2 rounded border ${bgColor} ${isCurrent ? 'ring-2 ring-cyan-400 bg-cyan-950/40' : ''}`}>
+                                    {sorted && isCurrent && <span className="text-cyan-400 text-sm flex-shrink-0">▶</span>}
+                                    <span className={`${textColor} text-sm font-semibold flex-1 truncate ${sorted && !isCurrent ? 'ml-5' : ''}`}>{entry.name}</span>
+                                    {!sorted ? (
+                                        <React.Fragment>
+                                            <input
+                                                type="number"
+                                                value={entry.init || ''}
+                                                onChange={e => updateEntry(entry.id, 'init', parseInt(e.target.value) || 0)}
+                                                className="w-14 px-2 py-1 bg-slate-900 border border-cyan-600/30 rounded text-cyan-100 text-sm text-center"
+                                                placeholder="0"
+                                            />
+                                            <button
+                                                onClick={() => rollD20(entry.id)}
+                                                className="bg-cyan-700/60 hover:bg-cyan-600/60 px-2 py-1 rounded text-xs text-cyan-100"
+                                                title="Roll d20"
+                                            >
+                                                d20
+                                            </button>
+                                        </React.Fragment>
+                                    ) : (
+                                        <span className="text-cyan-300 text-sm font-bold w-8 text-center">{entry.init}</span>
+                                    )}
+                                </div>
+                            );
+                        })}
+                    </div>
+
+                    <div className="flex gap-2 mt-3">
+                        {!sorted ? (
+                            <button
+                                onClick={sortAndStart}
+                                className="flex-1 bg-cyan-700/60 hover:bg-cyan-600/60 py-2 rounded text-sm font-semibold text-cyan-100 transition-colors"
+                            >
+                                Sort & Start
+                            </button>
+                        ) : (
+                            <React.Fragment>
+                                <button onClick={prevTurn} className="bg-slate-700 hover:bg-slate-600 px-3 py-2 rounded text-sm text-slate-200">Prev</button>
+                                <button onClick={nextTurn} className="flex-1 bg-cyan-700/60 hover:bg-cyan-600/60 py-2 rounded text-sm font-semibold text-cyan-100 transition-colors">Next Turn</button>
+                            </React.Fragment>
+                        )}
+                        <button onClick={resetInit} className="bg-slate-700 hover:bg-slate-600 px-3 py-2 rounded text-sm text-slate-200">Reset</button>
+                    </div>
+                </div>
+            );
+        };
+
+        // Player Choice / Decision Flow Component
+        const ChoiceFlow = ({ choices }) => (
+            <div className="space-y-4">
+                {choices.map((choice, i) => (
+                    <div key={i}>
+                        <h4 className="text-teal-200 font-semibold text-sm mb-2">{choice.situation}</h4>
+                        <div className="space-y-2">
+                            {choice.options.map((opt, j) => (
+                                <div key={j} className="bg-teal-950/40 border border-teal-600/30 rounded-lg p-3 flex gap-3">
+                                    <span className="flex-shrink-0 bg-teal-700/60 text-teal-100 text-xs font-bold px-2 py-1 rounded h-fit">{opt.option}</span>
+                                    <span className="text-teal-100/80 text-sm">{opt.outcome}</span>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                ))}
+            </div>
+        );
+
         const CAMPAIGN_DATA = {
           slides: [
             {
               id: 'intro', title: 'Session Start', type: 'intro',
               description: 'Welcome your players and set the stage for a night of mystery and murder in the city of Melvaunt.',
               readAloud: [
-                'Melvaunt is a city of merchants and metalsmiths on the northern coast of the Moonsea. The docks are constantly filled with ships from Hillsfar, Mulmaster, and more distant ports. The northern coast of the Moonsea is an inhospitable place, and its people have a reputation for being rough and unfriendly. But they don\'t go around murdering one another in the streets. At least, not usually.'
+                {label: 'Setting the Scene', text: 'Melvaunt is a city of merchants and metalsmiths on the northern coast of the Moonsea. The docks are constantly filled with ships from Hillsfar, Mulmaster, and more distant ports. The northern coast of the Moonsea is an inhospitable place, and its people have a reputation for being rough and unfriendly. But they don\'t go around murdering one another in the streets. At least, not usually.'}
               ],
               roleplay: [
                 {
@@ -271,9 +433,9 @@
               id: 'opening', title: 'Opening - Winking Narwhal', type: 'narrative', time: '7:45 PM',
               description: 'The characters exit the tavern and hear sounds of a brawl in a nearby alley. This is a distraction set up by C1e7i5 to cover its first murder.',
               readAloud: [
-                'Although the sailors and dockworkers crowding the Winking Narwhal will no doubt continue carousing into the wee hours, just before eight bells is your stopping time for this evening. You\'ve heard enough drunken rumors about sea monsters in the Moonsea, orc armies approaching the city gates, and giants killing merchants along the Phlan Path.',
-                'As you exit the tavern, the stench of stale beer and sweaty bodies is replaced by the scent of burning coal and scorched metal. They say that the forge-fires of Melvaunt never stop burning, and the local atmosphere is proof enough of that. The stars are faintly visible in the night sky thanks to the haze that shrouds the city.',
-                'No matter what business you were planning to be about, you can\'t help but overhear the distinctive sounds of a brawl coming from the nearby alley behind the tavern.'
+                {label: 'Leaving the Tavern', text: 'Although the sailors and dockworkers crowding the Winking Narwhal will no doubt continue carousing into the wee hours, just before eight bells is your stopping time for this evening. You\'ve heard enough drunken rumors about sea monsters in the Moonsea, orc armies approaching the city gates, and giants killing merchants along the Phlan Path.'},
+                {label: 'Stepping Outside', text: 'As you exit the tavern, the stench of stale beer and sweaty bodies is replaced by the scent of burning coal and scorched metal. They say that the forge-fires of Melvaunt never stop burning, and the local atmosphere is proof enough of that. The stars are faintly visible in the night sky thanks to the haze that shrouds the city.'},
+                {label: 'Sounds of a Brawl', text: 'No matter what business you were planning to be about, you can\'t help but overhear the distinctive sounds of a brawl coming from the nearby alley behind the tavern.'}
               ],
               mechanics: [
                 { title: 'Brawlers', details: 'Half-dozen drunkards. AC 10, knocked unconscious with 1 point of damage, disadvantage on all saving throws (intoxicated). They do NOT attack the adventurers.' },
@@ -295,6 +457,12 @@
                   ]
                 }
               ],
+              choices: [
+                { situation: 'Players hear a brawl in the alley', options: [
+                  { option: 'Investigate the brawl', outcome: 'Start in Alley A, 1-2 rounds to settle; may find coins (DC 13 Perception)' },
+                  { option: 'Ignore the brawl', outcome: 'Start closer to murder scene in Area B; better position when scream happens' }
+                ]}
+              ],
               dmTips: [
                 'Don\'t let the brawl scene take too long - it\'s just a distraction. Give players 1-2 rounds to settle things.',
                 'Some characters may want to investigate the brawl, others may ignore it. Characters who don\'t go to the alley start closer to the murder scene (Area B).',
@@ -312,9 +480,9 @@
               enemies: [{name:'Caltrop Swarm', count:5, hp:22, ac:14}],
               description: 'The clock strikes 8 bells and a scream rings out. C1e7i5 has killed a dockworker and left animated caltrops as a trap. The modron watches from the rooftop.',
               readAloud: [
-                'The elaborate mechanical clock tower near the temple of Gond is audible from most places in the city. Right on cue, it begins to chime eight bells. As the final peal fades into silence, you hear a scream from the opposite side of the street.',
-                'Very little natural light makes it into this narrow passageway. A heavyset man dressed in the clothes of a laborer lies face-down in the middle of the alley. A dagger is buried up to the hilt in the man\'s back and blood rapidly pools beneath his body.',
-                'The tiny caltrops scattered around the alley begin to vibrate. Suddenly, they fly up into the air, forming deadly swarms of sharpened metal!'
+                {label: '8 Bells Chime - The Scream', text: 'The elaborate mechanical clock tower near the temple of Gond is audible from most places in the city. Right on cue, it begins to chime eight bells. As the final peal fades into silence, you hear a scream from the opposite side of the street.'},
+                {label: 'Entering the Alley (after players approach)', text: 'Very little natural light makes it into this narrow passageway. A heavyset man dressed in the clothes of a laborer lies face-down in the middle of the alley. A dagger is buried up to the hilt in the man\'s back and blood rapidly pools beneath his body.'},
+                {label: 'Caltrops Animate (start of combat)', text: 'The tiny caltrops scattered around the alley begin to vibrate. Suddenly, they fly up into the air, forming deadly swarms of sharpened metal!'}
               ],
               mechanics: [
                 { title: 'DC 10 Medicine (darkvision or adjacent)', details: 'The man is dead. Blood pooling suggests the killing blow was struck within the last minute.' },
@@ -324,6 +492,12 @@
                 { title: 'Surprise Round', details: 'If characters did NOT notice the caltrops before triggering combat, the swarms SURPRISE them.' },
                 { title: 'The Dagger Note', details: 'The dagger is stabbed so hard only the hilt is visible. A folded piece of paper is pinned to the victim\'s back by the weapon. Give players Handout 1.' },
                 { title: 'C1e7i5 Detection: Passive Perception 21+', details: 'Only way to notice the small dark shape that briefly flits overhead. Even then, caltrops demand attention. There is NO way to interact with the modron at this stage.' }
+              ],
+              choices: [
+                { situation: 'Characters approach the dark alley after the scream', options: [
+                  { option: 'Enter cautiously (check for caltrops)', outcome: 'DC 13 Perception to notice caltrops; avoid surprise' },
+                  { option: 'Rush in', outcome: 'DC 15 Dex save or stop + 1 piercing + reduced speed; caltrops get surprise round' }
+                ]}
               ],
               dmTips: [
                 'DM PERFORMANCE TIP: Chime the 8 bells yourself slowly and monotonously (BONG... BONG... BONG... x8) then SCREAM! Lull them into boredom then shock them.',
@@ -342,9 +516,9 @@
               id: 'enc2', title: 'Enc 2: First Murder', type: 'investigation', time: '8:00 PM',
               description: 'Sergeant Eledstra arrives with guards. The characters must explain themselves, compare notes with Eledstra, and decipher the puzzle to find the next victim.',
               readAloud: [
-                'You hear the shrill noise of a watchman\'s whistle and the sound of booted feet clomping on the cobblestones. A detachment of city watch surrounds the alley at both ends, their halberds crossed to prevent you from leaving.',
-                'An older woman in the uniform of an officer steps carefully into the alley, avoiding the blood and the caltrops. She studies the area with keen blue eyes and runs a hand through her unruly white hair. "Hmm, well, now, what do we have here," she murmurs, as if to herself. "It seems that note was telling the truth after all. But we didn\'t get here by eight bells. Missed our appointment for murder! I\'d have expected the killer to be long gone. And yet..."',
-                'She looks expectantly at you, awaiting an explanation.'
+                {label: 'City Watch Arrives (after combat ends)', text: 'You hear the shrill noise of a watchman\'s whistle and the sound of booted feet clomping on the cobblestones. A detachment of city watch surrounds the alley at both ends, their halberds crossed to prevent you from leaving.'},
+                {label: 'Sergeant Eledstra Approaches', text: 'An older woman in the uniform of an officer steps carefully into the alley, avoiding the blood and the caltrops. She studies the area with keen blue eyes and runs a hand through her unruly white hair. "Hmm, well, now, what do we have here," she murmurs, as if to herself. "It seems that note was telling the truth after all. But we didn\'t get here by eight bells. Missed our appointment for murder! I\'d have expected the killer to be long gone. And yet..."'},
+                {label: 'She Awaits Your Explanation', text: 'She looks expectantly at you, awaiting an explanation.'}
               ],
               roleplay: [
                 {
@@ -402,7 +576,7 @@
               id: 'travel1', title: 'Travel to Marketplace', type: 'narrative', time: '8:30 PM',
               description: 'The characters travel to the marketplace to find the next victim - a dwarven adamantine blacksmith named Boltac. They arrive ~15 minutes before 9 bells and must search quickly.',
               readAloud: [
-                'It takes about twenty minutes for you to make your way from the docks to the large marketplace in the center of Melvaunt. Although the hour is late and many stalls have closed for the night, the plaza is far from deserted: you see plenty of buyers and sellers haggling over an impressive variety of goods and services. Unfortunately, there\'s no time for shopping. You have to locate the killer\'s next target.'
+                {label: 'Arriving at the Marketplace', text: 'It takes about twenty minutes for you to make your way from the docks to the large marketplace in the center of Melvaunt. Although the hour is late and many stalls have closed for the night, the plaza is far from deserted: you see plenty of buyers and sellers haggling over an impressive variety of goods and services. Unfortunately, there\'s no time for shopping. You have to locate the killer\'s next target.'}
               ],
               mechanics: [
                 { title: 'The Search (each player makes a check)', details: 'Ask each player what their character does to search. Base DC is 15. Grant +5 bonus if the player makes a convincing argument using clues about the victim (dwarf, adamantine, blacksmith). Two characters doing the same thing = single check with advantage but fewer total checks.' },
@@ -426,6 +600,13 @@
                   ]
                 }
               ],
+              choices: [
+                { situation: 'Search results determine starting positions for next combat', options: [
+                  { option: 'Majority succeed', outcome: 'Found Boltac early. Time to talk + set up. All start in Area A' },
+                  { option: 'Some succeed', outcome: 'Last-second find. Finders + Boltac in Area A, other successes in Area B, failures in Area C' },
+                  { option: 'None succeed', outcome: 'Too late. Boltac alone in Area A, successes in Area B, failures in Area C' }
+                ]}
+              ],
               dmTips: [
                 'The slave market ("livestock pen") is currently closed, so the marketplace only has goods traders - this makes the search somewhat easier.',
                 'Let players be creative with their searches. The +5 bonus for using victim info rewards players who paid attention to the puzzle.',
@@ -445,9 +626,9 @@
               npcs: [{name:'Boltac', hp:22, ac:13}],
               description: 'C1e7i5 takes control of a gnomish tinkerer\'s Gondsmen constructs to attack Boltac while preparing a crossbow shot. The characters must protect the dwarf and fight the constructs.',
               readAloud: [
-                'One of the stalls near Boltac is filled with what look like four-foot-tall mechanical men. Gears clank and servos whir as they walk to and fro. "Gondsmen, get your Gondsmen," calls out the proprietor, a female gnome with bright red hair wearing a holy symbol of Gond. "They can lift, they can fetch, they never get tired, and they don\'t eat! The perfect domestic servants!"',
-                'A puff of blue smoke comes out of the back of one of the golems. It topples over on its side, seemingly inert. "Oh, buckets," says the gnome. "Not in front of the customers! Gondsman five, reset!" The creature glows briefly and lurches back to life.',
-                'The newly-rejuvenated golem does not return to its previous duties, however. Instead, it lurches forward, crashing through the thin wooden panel separating the gnome\'s stall from Boltac\'s. "Hey, it\'s not supposed to do that! Gondsman five, I said RESET!" Suddenly, ALL the remaining constructs begin to glow with the same reddish light, and they too lurch forward. Every single one of them is headed directly for the dwarf.'
+                {label: 'Ellywicket\'s Gondsmen Stall (before 9 bells)', text: 'One of the stalls near Boltac is filled with what look like four-foot-tall mechanical men. Gears clank and servos whir as they walk to and fro. "Gondsmen, get your Gondsmen," calls out the proprietor, a female gnome with bright red hair wearing a holy symbol of Gond. "They can lift, they can fetch, they never get tired, and they don\'t eat! The perfect domestic servants!"'},
+                {label: 'A Gondsman Malfunctions', text: 'A puff of blue smoke comes out of the back of one of the golems. It topples over on its side, seemingly inert. "Oh, buckets," says the gnome. "Not in front of the customers! Gondsman five, reset!" The creature glows briefly and lurches back to life.'},
+                {label: 'All Gondsmen Go Rogue (start of combat)', text: 'The newly-rejuvenated golem does not return to its previous duties, however. Instead, it lurches forward, crashing through the thin wooden panel separating the gnome\'s stall from Boltac\'s. "Hey, it\'s not supposed to do that! Gondsman five, I said RESET!" Suddenly, ALL the remaining constructs begin to glow with the same reddish light, and they too lurch forward. Every single one of them is headed directly for the dwarf.'}
               ],
               roleplay: [
                 {
@@ -515,6 +696,15 @@
                 { title: 'The Next Note', details: 'The crossbow bolt is HOLLOW and contains rolled-up parchment squares inside. Examining the bolt reveals this without a check. If players don\'t think to check and Boltac is alive, he angrily grabs the bolt and snaps it in half, revealing the note.' },
                 { title: 'Encounter Scaling (Strong Party)', details: 'Already set for Strong party (8 Gondsmen). Very Strong: increase Gondsman HP from 11 to 18 and damage from 4 (1d6+1) to 5 (1d8+1).' }
               ],
+              choices: [
+                { situation: 'Convincing Boltac of the danger', options: [
+                  { option: 'Show bloody note', outcome: 'DC reduced by 5 (DC 15 Persuasion)' },
+                  { option: 'Show Eledstra\'s writ', outcome: 'DC reduced by 5 (DC 15 Persuasion)' },
+                  { option: 'Raw persuasion', outcome: 'DC 20 Persuasion' },
+                  { option: 'Pretend to be Callanwolde', outcome: 'DC 20 Deception (no reduction possible)' },
+                  { option: 'Physically move him', outcome: 'DC 15 Athletics (tackle/wrestle)' }
+                ]}
+              ],
               dmTips: [
                 'Gondsman tactics: C1e7i5 uses them to clear characters away from Boltac. Use the Shove action to displace defenders long enough for the crossbow shot.',
                 'Boltac says "Ah, Callanwolde, I presume?" when approached - he was lured here by a fake buyer set up by C1e7i5.',
@@ -555,9 +745,9 @@
               id: 'travel2', title: 'Travel to Temple', type: 'narrative', time: '9:30 PM',
               description: 'The characters travel to the Temple of Loviatar. They must decide how to approach: present themselves diplomatically or set up outside. C1e7i5 is ALREADY INSIDE the temple.',
               readAloud: [
-                'The temple is a two-story stone building, larger and wider than the more ramshackle structures on either side of it, but not otherwise out of place in the district. Apart from a few statues and a holy symbol over the door, there\'s not much here to suggest the presence of a place of worship.',
-                'This might be due to some of the misunderstandings that commoners, especially sailors, tend to have about the teachings of Loviatar. From here you can see the glow of the lighthouse all the way down at the other end of the docks.',
-                'The door is closed, although a bit of light escapes from within through the narrow glass windows. It does not appear that the temple is open to supplicants at this late hour, but neither does the building seem to be uninhabited.'
+                {label: 'Temple Exterior', text: 'The temple is a two-story stone building, larger and wider than the more ramshackle structures on either side of it, but not otherwise out of place in the district. Apart from a few statues and a holy symbol over the door, there\'s not much here to suggest the presence of a place of worship.'},
+                {label: 'About the Temple of Loviatar', text: 'This might be due to some of the misunderstandings that commoners, especially sailors, tend to have about the teachings of Loviatar. From here you can see the glow of the lighthouse all the way down at the other end of the docks.'},
+                {label: 'The Closed Door', text: 'The door is closed, although a bit of light escapes from within through the narrow glass windows. It does not appear that the temple is open to supplicants at this late hour, but neither does the building seem to be uninhabited.'}
               ],
               mechanics: [
                 { title: 'Critical Info: C1e7i5 is ALREADY INSIDE', details: 'The modron is already hiding inside the temple, waiting for 10 bells. Setting up outside to intercept the assassin will NOT work.' },
@@ -565,6 +755,14 @@
                 { title: 'Best Outcome', details: 'Convince Zellani to let them guard her. She reluctantly invites them into the sanctuary but warns them to stay in the main hall.' },
                 { title: 'Failed Persuasion', details: 'Zellani closes the door. Options: wait outside (won\'t spot assassin - C1e7i5 is already inside), or sneak in via side door: DC 15 Dexterity (thieves\' tools). This leads to back of sanctuary - must hide behind curtains or Zellani calls the watch.' },
                 { title: 'Breaking In', details: 'Front door is locked. DC 15 Strength (Athletics) to force open, or DC 15 Dexterity (thieves\' tools) to pick.' }
+              ],
+              choices: [
+                { situation: 'How to approach the temple', options: [
+                  { option: 'Ring the bell, talk to Zellani', outcome: 'DC 10 Persuasion (advantage with note/writ). Best outcome: invited inside' },
+                  { option: 'Sneak in via side door', outcome: 'DC 15 Dex (thieves\' tools). Must hide behind curtains' },
+                  { option: 'Force the front door', outcome: 'DC 15 Athletics or DC 15 Dex (thieves\' tools). Loud; alerts Zellani' },
+                  { option: 'Wait outside / set ambush', outcome: 'BAD: C1e7i5 is already INSIDE. Won\'t intercept the killer' }
+                ]}
               ],
               dmTips: [
                 'Zellani is a priestess of LOVIATAR (goddess of pain). She\'s not easily scared and considers herself above ordinary folk.',
@@ -622,6 +820,14 @@
                 { title: 'Failure', details: 'She closes the door. Players must wait outside (bad position) or sneak in via side door (DC 15 Dexterity with thieves\' tools). Sneaking in requires hiding behind curtains or she calls the watch.' },
                 { title: 'Zellani\'s Defense', details: 'When attacked, she can summon devils (lemures and imps) bound to Loviatar. She fights with a thorn whip in melee. She used all spell slots for the devil summoning, leaving only Sacred Flame cantrip.' }
               ],
+              choices: [
+                { situation: 'Convincing Zellani to let you guard her', options: [
+                  { option: 'Persuasion (best)', outcome: 'DC 10. Show note/writ for advantage. She lets you guard from main hall' },
+                  { option: 'Intimidation', outcome: 'DC 15. Priestesses of pain aren\'t easily cowed' },
+                  { option: 'Deception', outcome: 'DC 15. She\'s suspicious by nature' },
+                  { option: 'Fail all checks', outcome: 'She closes the door. Must sneak in (DC 15 thieves\' tools) or wait outside' }
+                ]}
+              ],
               dmTips: [
                 'Zellani is unaware of the night\'s events. Even if the characters\' story is true, she believes the safest place for her is inside the temple.',
                 'She will NOT abandon her duties. At 10 bells she must tend the shrine - this is non-negotiable.',
@@ -640,9 +846,9 @@
               npcs: [{name:'Zellani', hp:25, ac:13}],
               description: 'C1e7i5 summons chaos creatures through planar rifts. Zellani summons devils to defend the temple. The characters fight chaos creatures while devils fight independently. After the creatures are defeated, C1e7i5 crashes through the skylight for a dramatic confrontation.',
               readAloud: [
-                '(If OUTSIDE) The clock tower chimes the hour, predictable and steady as always. Sure enough, as the last bell fades away, you hear the sound of breaking glass and shouts of battle from inside the temple.',
-                '(If INSIDE) As the last of ten chimes fades away, you brace for the inevitable attack. The priestess looks up in surprise as thin strips of yellow light appear in the air, as if someone were slicing through the very fabric of reality. Swirling motes of chaotic energy burst through the rifts, followed by stick-like figures whose shapes twist and waver, constantly changing form.',
-                '"You dare invade the sanctum of Loviatar?" shouts Zellani. "I call upon the servitors of the Maiden of Pain to taste the delicious agony of your suffering!" She gestures, and flashes of light herald the arrival of devils throughout the temple.'
+                {label: 'IF PLAYERS ARE OUTSIDE at 10 Bells', text: '(If OUTSIDE) The clock tower chimes the hour, predictable and steady as always. Sure enough, as the last bell fades away, you hear the sound of breaking glass and shouts of battle from inside the temple.', conditional: true},
+                {label: 'IF PLAYERS ARE INSIDE at 10 Bells', text: '(If INSIDE) As the last of ten chimes fades away, you brace for the inevitable attack. The priestess looks up in surprise as thin strips of yellow light appear in the air, as if someone were slicing through the very fabric of reality. Swirling motes of chaotic energy burst through the rifts, followed by stick-like figures whose shapes twist and waver, constantly changing form.', conditional: true},
+                {label: 'Zellani Summons Devils (both paths)', text: '"You dare invade the sanctum of Loviatar?" shouts Zellani. "I call upon the servitors of the Maiden of Pain to taste the delicious agony of your suffering!" She gestures, and flashes of light herald the arrival of devils throughout the temple.'}
               ],
               mechanics: [
                 { title: 'Chaos Creatures Tactics', details: 'Uncontrollable - attack recklessly without coordination. C1e7i5 makes no attempt to control them.' },
@@ -655,6 +861,13 @@
                 { title: 'Damage Target to Save Zellani', details: 'For your party (6 characters, APL 1): must deal 4 x 6 = 24 total damage in one round against AC 16. A character who shields Zellani instead of attacking counts as 10 damage toward the target.' },
                 { title: 'If Zellani is Saved', details: 'C1e7i5\'s aim is ruined. The black arrow skips off the marble floor. The assassin flies back through the broken skylight, moving slowly (injured). Zellani gasps: "Door... to the roof. Behind the curtain. Hurry. Get that bastard for me."' },
                 { title: 'If Zellani Dies', details: 'The black arrow takes her in the side. She slumps to the floor and gasps her final words: "Door... to the roof. Behind the curtain. Get that bastard... for... me." The assassin lazily spirals up through the skylight.' }
+              ],
+              choices: [
+                { situation: 'Saving Zellani from the skylight shot', options: [
+                  { option: 'Deal enough damage (24 total vs AC 16)', outcome: 'Zellani lives, grateful, gives reward' },
+                  { option: 'Shield Zellani (counts as 10 damage toward threshold)', outcome: 'Sacrifice attack for guaranteed contribution' },
+                  { option: 'Fail the damage threshold', outcome: 'Zellani dies. Still gives dying words pointing to roof' }
+                ]}
               ],
               dmTips: [
                 'This is the LAST real fight of the adventure. If the characters are having an easy time and have resources left, throw extra chaos creatures at them.',
@@ -673,9 +886,9 @@
               id: 'enc5', title: 'Enc 5: Rooftop Chase', type: 'skill-challenge', time: '10:15 PM',
               description: 'A cinematic chase across the rooftops as C1e7i5 flees toward the lighthouse, tearing open planar rifts that create obstacles. This is ABSTRACT - no battle map, just zones.',
               readAloud: [
-                'The cloaked figure takes off toward the glow of the lighthouse at the far end of the pier. The warehouses, taverns, and other buildings in this area are built so close together that you can actually run along the rooftops all the way down the length of the docks district.',
-                'Although he is flying, the assassin doesn\'t seem to be moving all that fast. Maybe you got a few good shots in there after all. You might even be able to catch him.',
-                'Then the creature reaches lazily into the air. As its arm emerges from beneath the billowing cloak you catch just a glimpse of how thin it is. The skin seems strange... almost metallic. There\'s no time to ponder the implications, however, because glowing energy erupts, creating small planar rifts. The rooftops have just become an obstacle course of mythical proportions.'
+                {label: 'Chase Begins', text: 'The cloaked figure takes off toward the glow of the lighthouse at the far end of the pier. The warehouses, taverns, and other buildings in this area are built so close together that you can actually run along the rooftops all the way down the length of the docks district.'},
+                {label: 'The Assassin Seems Slow', text: 'Although he is flying, the assassin doesn\'t seem to be moving all that fast. Maybe you got a few good shots in there after all. You might even be able to catch him.'},
+                {label: 'Planar Rifts Open', text: 'Then the creature reaches lazily into the air. As its arm emerges from beneath the billowing cloak you catch just a glimpse of how thin it is. The skin seems strange... almost metallic. There\'s no time to ponder the implications, however, because glowing energy erupts, creating small planar rifts. The rooftops have just become an obstacle course of mythical proportions.'}
               ],
               mechanics: [
                 { title: 'Chase Structure', details: 'Cinematic, NOT tactical. No battle map. Track initiative order and which zone each character is in. The lead character is always one zone behind C1e7i5. 4 zones total before reaching the lighthouse.' },
@@ -708,11 +921,11 @@
               id: 'finale', title: 'Lighthouse Finale', type: 'narrative', time: '10:30 PM',
               description: 'The chase ends at the Finger of the Gods lighthouse. The modron is finally revealed as C1e7i5 escapes through a massive portal to Mechanus, losing an arm in the process.',
               readAloud: [
-                'The massive lighthouse known as the Finger of the Gods stands before you, its beacon visible far across the Moonsea. You reach the end of the last rooftop just a few paces behind the floating, cloaked figure, which slowly turns to face you.',
-                'As the hood of its cloak falls away, you see... a square, cubical face, with swirling eyes and metallic skin. No, not just a face... the creature\'s entire body is essentially a perfect cube about the size of a man\'s torso. It has no neck or head; its face peers at you from the front of the cube. It is bipedal, but its arms and legs are skinny and elongated. It moves with a surprising quickness for something so strangely proportioned.',
-                'You hear the familiar sound of the clock tower striking. But the noise isn\'t coming from somewhere back in the city - it\'s coming from directly in front of you. From the lighthouse. A massive portal, easily fifteen feet in diameter, opens up in the side of the Finger of the Gods. Through the portal you see a realm of clockwork gears, all interlocking, all moving in time, performing a calculation so vast and so complicated that not even the minds of the gods can fathom its purpose.',
-                'The modron... the machine... the murderer... bows slightly in your direction and turns to enter the portal.',
-                'Your weapons and spells strike true: your efforts are not in vain. As the modron falls into the portal, a look of absolute bliss on its face, there is a wrenching sound and one of its arms rips completely out of the socket! The creature starts to scream, but before the sound reaches your ears, the entire portal snaps shut with an audible POP. You are left holding one very strange severed limb and precious few answers.'
+                {label: 'Arriving at the Lighthouse', text: 'The massive lighthouse known as the Finger of the Gods stands before you, its beacon visible far across the Moonsea. You reach the end of the last rooftop just a few paces behind the floating, cloaked figure, which slowly turns to face you.'},
+                {label: 'The Reveal - The Modron', text: 'As the hood of its cloak falls away, you see... a square, cubical face, with swirling eyes and metallic skin. No, not just a face... the creature\'s entire body is essentially a perfect cube about the size of a man\'s torso. It has no neck or head; its face peers at you from the front of the cube. It is bipedal, but its arms and legs are skinny and elongated. It moves with a surprising quickness for something so strangely proportioned.'},
+                {label: 'The Portal to Mechanus', text: 'You hear the familiar sound of the clock tower striking. But the noise isn\'t coming from somewhere back in the city - it\'s coming from directly in front of you. From the lighthouse. A massive portal, easily fifteen feet in diameter, opens up in the side of the Finger of the Gods. Through the portal you see a realm of clockwork gears, all interlocking, all moving in time, performing a calculation so vast and so complicated that not even the minds of the gods can fathom its purpose.'},
+                {label: 'C1e7i5 Enters the Portal', text: 'The modron... the machine... the murderer... bows slightly in your direction and turns to enter the portal.'},
+                {label: 'The Severed Arm', text: 'Your weapons and spells strike true: your efforts are not in vain. As the modron falls into the portal, a look of absolute bliss on its face, there is a wrenching sound and one of its arms rips completely out of the socket! The creature starts to scream, but before the sound reaches your ears, the entire portal snaps shut with an audible POP. You are left holding one very strange severed limb and precious few answers.'}
               ],
               mechanics: [
                 { title: 'DC 10 Intelligence (Arcana)', details: 'Recognize this creature as a modron, native to the plane of Mechanus.' },
@@ -738,20 +951,20 @@
               id: 'conclusion', title: 'Rewards & Conclusion', type: 'conclusion',
               description: 'The adventure concludes with Eledstra debriefing the characters and handing out rewards based on their performance.',
               readAloud: [
-                'It looks as though the strange matter of the modron serial killer has come to an end, for now. There\'s something strange about the whole thing, though. Modrons are creatures of absolute law and order. Occasionally they go rogue, but for one to plan and carry out a series of premeditated murders seems even beyond what rogue modrons have done in the past.',
-                'Then there\'s the matter of the severed arm which somehow seems to be connected to the portal to Mechanus. Where there\'s one crazy murderous modron, could there be more? You have a feeling that you, and Melvaunt, may find out the answer to that question much sooner than you would like.',
-                'The story continues in CORE 1-2: A Cog in the Wheel.'
+                {label: 'Epilogue Narration', text: 'It looks as though the strange matter of the modron serial killer has come to an end, for now. There\'s something strange about the whole thing, though. Modrons are creatures of absolute law and order. Occasionally they go rogue, but for one to plan and carry out a series of premeditated murders seems even beyond what rogue modrons have done in the past.'},
+                {label: 'The Unanswered Questions', text: 'Then there\'s the matter of the severed arm which somehow seems to be connected to the portal to Mechanus. Where there\'s one crazy murderous modron, could there be more? You have a feeling that you, and Melvaunt, may find out the answer to that question much sooner than you would like.'},
+                {label: 'Sequel Hook', text: 'The story continues in CORE 1-2: A Cog in the Wheel.'}
               ],
               mechanics: [
                 { title: 'XP: Combat Awards (divide by # characters)', details: 'Swarm of Animated Caltrops: 50 XP each. Lesser Gondsman: 25 XP each. Chaos Blight: 25 XP each. Chaos Bolter: 50 XP each. Chaos Slasher: 200 XP each.' },
                 { title: 'XP: Non-Combat Awards (per character)', details: 'Solving the "Blacksmith" puzzle: 25 XP. Solving the "Loviatar" puzzle: 25 XP. Chasing the modron to the portal: 50 XP.' },
                 { title: 'XP Range', details: 'Minimum: 225 XP per character. Maximum: 300 XP per character.' },
                 { title: 'Gold: Eledstra\'s Reward', details: '100 gp total (divided among party) for their service to the Watch.' },
-                { title: 'Gold: Zellani\'s Reward (if saved)', details: '100 gp total from the Temple of Loviatar.' },
+                { title: 'Gold: Zellani\'s Reward (if saved)', details: '100 gp total from the Temple of Loviatar.', requires: 'zellani' },
                 { title: 'Potion of Greater Healing', details: 'Uncommon potion, one per party. Heals 4d4+4 HP.' },
-                { title: 'Story Award: Chunk of Adamantine (if Boltac saved)', details: 'Each character gets raw adamantine ore. Can sell for 50 gp OR save to forge weapons. 1 chunk = dagger/light hammer/sickle. 2 = handaxe/shortsword/etc. 3 = longsword/battleaxe/etc. 4 = greatsword/greataxe/etc. Adamantine weapons bypass certain damage resistances.' },
-                { title: 'Story Award: Favor of Zellani (if Zellani saved)', details: '25% discount on spellcasting services from the Temple of Loviatar. May also help in future Melvaunt adventures.' },
-                { title: 'Council of Lords (if BOTH saved)', details: 'Two Points of Influence in Melvaunt. Their deeds have been brought to the attention of the ruling Council of Lords, whose three families are always looking for up-and-coming adventurers.' },
+                { title: 'Story Award: Chunk of Adamantine (if Boltac saved)', details: 'Each character gets raw adamantine ore. Can sell for 50 gp OR save to forge weapons. 1 chunk = dagger/light hammer/sickle. 2 = handaxe/shortsword/etc. 3 = longsword/battleaxe/etc. 4 = greatsword/greataxe/etc. Adamantine weapons bypass certain damage resistances.', requires: 'boltac' },
+                { title: 'Story Award: Favor of Zellani (if Zellani saved)', details: '25% discount on spellcasting services from the Temple of Loviatar. May also help in future Melvaunt adventures.', requires: 'zellani' },
+                { title: 'Council of Lords (if BOTH saved)', details: 'Two Points of Influence in Melvaunt. Their deeds have been brought to the attention of the ruling Council of Lords, whose three families are always looking for up-and-coming adventurers.', requires: 'both' },
                 { title: 'Downtime', details: 'Each character receives 10 downtime days.' },
                 { title: 'Renown', details: 'All faction members earn 1 renown point.' }
               ],
@@ -788,13 +1001,16 @@
           const [notes, setNotes] = useState(saved?.notes || { boltac: null, zellani: null, moments: [] });
           const [noteText, setNoteText] = useState('');
           const [showCombat, setShowCombat] = useState(false);
+          const [initiative, setInitiative] = useState(saved?.initiative || { entries: [], currentIndex: -1, round: 0, sorted: false });
+          const defaultPlayers = { Paladin: '', Monk: '', Ranger: '', Warlock: '', Sorcerer: '', Barbarian: '' };
+          const [players, setPlayers] = useState(saved?.players || defaultPlayers);
 
           const current = CAMPAIGN_DATA.slides[slide];
 
           // Auto-save all tracked state whenever it changes
           useEffect(() => {
-            saveState({ slide, hp, notes });
-          }, [slide, hp, notes]);
+            saveState({ slide, hp, notes, initiative, players });
+          }, [slide, hp, notes, initiative, players]);
 
           useEffect(() => {
             if (current.type === 'combat') {
@@ -812,6 +1028,38 @@
             }
           }, [slide]);
 
+          // Auto-populate initiative entries for combat/skill-challenge slides
+          useEffect(() => {
+            if (current.type === 'combat' || current.type === 'skill-challenge') {
+              setInitiative(prev => {
+                // Only populate if empty for this slide
+                if (prev.entries.length > 0) return prev;
+                const entries = [];
+                const classes = ['Paladin', 'Monk', 'Ranger', 'Warlock', 'Sorcerer', 'Barbarian'];
+                classes.forEach(cls => {
+                  const displayName = players[cls] ? `${players[cls]} (${cls})` : cls;
+                  entries.push({ id: `player-${cls}`, name: displayName, init: 0, isPlayer: true, isNPC: false });
+                });
+                current.npcs?.forEach(n => {
+                  entries.push({ id: `npc-${n.name}`, name: n.name, init: 0, isPlayer: false, isNPC: true });
+                });
+                current.enemies?.forEach(e => {
+                  // C1e7i5 acts on Initiative 20 (loses ties)
+                  const initVal = e.name === 'C1e7i5' ? 20 : 0;
+                  if (e.count === 1) {
+                    entries.push({ id: `enemy-${e.name}`, name: e.name, init: initVal, isPlayer: false, isNPC: false });
+                  } else {
+                    entries.push({ id: `enemy-${e.name}-group`, name: `${e.name} (x${e.count})`, init: initVal, isPlayer: false, isNPC: false });
+                  }
+                });
+                return { entries, currentIndex: -1, round: 0, sorted: false };
+              });
+            } else {
+              // Clear initiative when leaving combat/skill-challenge slides
+              setInitiative({ entries: [], currentIndex: -1, round: 0, sorted: false });
+            }
+          }, [slide]);
+
           const updateHp = (key, delta, max) => {
             setHp(prev => ({...prev, [key]: Math.max(0, Math.min(max, (prev[key] || max) + delta))}));
           };
@@ -823,13 +1071,15 @@
           };
 
           const resetSession = () => {
-            if (confirm('Reset all session data? This clears HP, notes, and slide position.')) {
+            if (confirm('Reset all session data? This clears HP, notes, initiative, and slide position.')) {
               clearState();
               setSlide(0);
               setHp({});
               setNotes({ boltac: null, zellani: null, moments: [] });
               setNoteText('');
               setShowCombat(false);
+              setInitiative({ entries: [], currentIndex: -1, round: 0, sorted: false });
+              setPlayers(defaultPlayers);
             }
           };
 
@@ -850,8 +1100,21 @@
                 <div key="intro-cards" className="grid md:grid-cols-2 gap-4 mb-2">
                   <div className="bg-slate-950/50 p-5 rounded-lg border border-amber-600/30">
                     <h3 className="text-lg font-semibold text-amber-400 mb-3 font-display">Setup</h3>
+                    <div className="grid grid-cols-2 gap-x-4 gap-y-2 mb-3">
+                      {Object.keys(players).map(cls => (
+                        <div key={cls} className="flex items-center gap-2">
+                          <span className="text-amber-400 text-xs font-semibold w-16 shrink-0">{cls}</span>
+                          <input
+                            type="text"
+                            placeholder="Name"
+                            value={players[cls]}
+                            onChange={e => setPlayers(prev => ({...prev, [cls]: e.target.value}))}
+                            className="bg-slate-900/60 border border-amber-600/30 rounded px-2 py-1 text-xs text-amber-100 placeholder-amber-100/30 w-full focus:outline-none focus:border-amber-500/60"
+                          />
+                        </div>
+                      ))}
+                    </div>
                     <ul className="space-y-2 text-sm">
-                      <li className="text-amber-100/90">6 Players: Paladin, Monk, Ranger, Warlock, Sorcerer, Barbarian</li>
                       <li className="text-amber-100/90">Level 1 - Strong Party</li>
                       <li className="text-amber-100/90">Duration: 3-4 hours</li>
                       <li className="text-amber-100/90">Location: The Winking Narwhal, Melvaunt</li>
@@ -879,6 +1142,15 @@
               );
             }
 
+            // Player Choices
+            if (current.choices?.length) {
+              sections.push(
+                <Section key="choices" title="Player Choices" icon="🔀" color="teal" defaultOpen={true}>
+                  <ChoiceFlow choices={current.choices} />
+                </Section>
+              );
+            }
+
             // NPC Roleplay
             if (current.roleplay?.length) {
               sections.push(
@@ -888,13 +1160,61 @@
               );
             }
 
-            // Key Mechanics
+            // Key Mechanics / Rewards Checklist
             if (current.mechanics?.length) {
-              sections.push(
-                <Section key="mechanics" title="Key Mechanics & DCs" icon="⚔️" color="blue" defaultOpen={current.type === 'investigation' || current.type === 'skill-challenge'}>
-                  {current.mechanics.map((item, i) => <MechanicItem key={i} item={item} />)}
-                </Section>
-              );
+              if (current.type === 'conclusion') {
+                const getRewardStatus = (item) => {
+                  if (!item.requires) return 'earned';
+                  if (item.requires === 'boltac') return notes.boltac === true ? 'earned' : notes.boltac === false ? 'missed' : 'unknown';
+                  if (item.requires === 'zellani') return notes.zellani === true ? 'earned' : notes.zellani === false ? 'missed' : 'unknown';
+                  if (item.requires === 'both') return (notes.boltac === true && notes.zellani === true) ? 'earned' : (notes.boltac === false || notes.zellani === false) ? 'missed' : 'unknown';
+                  return 'earned';
+                };
+                const statusBadge = (label, value) => {
+                  const cfg = value === true ? { bg: 'bg-green-900/50', border: 'border-green-500/40', text: 'text-green-300', label: 'Saved' }
+                    : value === false ? { bg: 'bg-red-900/50', border: 'border-red-500/40', text: 'text-red-300', label: 'Died' }
+                    : { bg: 'bg-yellow-900/50', border: 'border-yellow-500/40', text: 'text-yellow-300', label: 'Not tracked' };
+                  return (
+                    <span className={`${cfg.bg} ${cfg.border} border rounded-full px-3 py-1 text-xs font-semibold ${cfg.text} inline-flex items-center gap-1`}>
+                      {label}: {cfg.label}
+                    </span>
+                  );
+                };
+                const rewardStyles = {
+                  earned: { border: 'border-l-green-500 border-green-600/20', bg: 'bg-green-950/30', titleClass: 'text-green-300', detailClass: 'text-green-100/80', opacity: '', icon: '✓', iconColor: 'text-green-400' },
+                  missed: { border: 'border-l-red-500 border-red-600/20', bg: 'bg-red-950/30', titleClass: 'text-red-300 line-through', detailClass: 'text-red-100/50', opacity: 'opacity-60', icon: '✗', iconColor: 'text-red-400' },
+                  unknown: { border: 'border-l-yellow-500 border-yellow-600/20', bg: 'bg-yellow-950/30', titleClass: 'text-yellow-300', detailClass: 'text-yellow-100/80', opacity: '', icon: '?', iconColor: 'text-yellow-400' }
+                };
+                sections.push(
+                  <Section key="mechanics" title="Rewards Checklist" icon="🏆" color="green" defaultOpen={true}>
+                    <div className="flex flex-wrap gap-2 mb-4">
+                      {statusBadge('Boltac', notes.boltac)}
+                      {statusBadge('Zellani', notes.zellani)}
+                    </div>
+                    {current.mechanics.map((item, i) => {
+                      const status = getRewardStatus(item);
+                      const s = rewardStyles[status];
+                      return (
+                        <div key={i} className={`${s.bg} border border-l-4 ${s.border} rounded-lg p-3 mb-2 ${s.opacity}`}>
+                          <div className="flex items-start gap-2">
+                            <span className={`${s.iconColor} font-bold text-lg leading-5 flex-shrink-0`}>{s.icon}</span>
+                            <div>
+                              <h4 className={`text-sm font-bold ${s.titleClass} mb-1`}>{item.title}</h4>
+                              <p className={`${s.detailClass} text-sm`}>{item.details}</p>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </Section>
+                );
+              } else {
+                sections.push(
+                  <Section key="mechanics" title="Key Mechanics & DCs" icon="⚔️" color="blue" defaultOpen={current.type === 'investigation' || current.type === 'skill-challenge'}>
+                    {current.mechanics.map((item, i) => <MechanicItem key={i} item={item} />)}
+                  </Section>
+                );
+              }
             }
 
             // DM Tips
@@ -969,7 +1289,7 @@
                       </div>
 
                       {/* Combat Tracker */}
-                      {current.type === 'combat' && (
+                      {(current.type === 'combat' || current.type === 'skill-challenge') && (
                         <div className="space-y-4 mb-4">
                           <button
                             onClick={() => setShowCombat(!showCombat)}
@@ -981,6 +1301,11 @@
 
                           {showCombat && (
                             <div className="bg-slate-950/80 p-5 rounded-lg border-2 border-red-600/50 space-y-4">
+                              {/* Initiative Tracker */}
+                              {initiative.entries.length > 0 && (
+                                <InitiativeTracker initiative={initiative} setInitiative={setInitiative} />
+                              )}
+
                               {current.npcs && (
                                 <div>
                                   <h3 className="text-lg font-semibold text-green-400 mb-3 flex items-center gap-2">
