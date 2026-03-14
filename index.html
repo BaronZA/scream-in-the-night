@@ -379,6 +379,41 @@
             </div>
         );
 
+        const ENCOUNTER_SCALING = {
+          // Base encounter optimised for 5 players at APL. 4 players = Weak, 6-7 = Strong.
+          tierFor: (n) => n <= 2 ? 'Very Weak' : n <= 4 ? 'Weak' : n === 5 ? 'Average' : n <= 7 ? 'Strong' : 'Very Strong',
+          tierStyle: {
+            'Very Weak': { bg: 'bg-red-900/50', border: 'border-red-500/50', text: 'text-red-300' },
+            'Weak':      { bg: 'bg-orange-900/50', border: 'border-orange-500/50', text: 'text-orange-300' },
+            'Average':   { bg: 'bg-yellow-900/50', border: 'border-yellow-500/50', text: 'text-yellow-300' },
+            'Strong':    { bg: 'bg-green-900/50', border: 'border-green-500/50', text: 'text-green-300' },
+            'Very Strong':{ bg: 'bg-emerald-900/50', border: 'border-emerald-500/50', text: 'text-emerald-300' },
+          },
+          encounters: [
+            { slideId: 'enc1', name: 'Enc 1: Caltrops', tiers: {
+              'Very Weak':   '3 swarms · HP 15',
+              'Weak':        '3 swarms · HP 15',
+              'Average':     '3 swarms · HP 22',
+              'Strong':      '5 swarms · HP 22',
+              'Very Strong': '5 swarms · HP 22 · dmg 10 (4d4) · full dmg below half',
+            }},
+            { slideId: 'enc3', name: 'Enc 3: Gondsmen', tiers: {
+              'Very Weak':   '4 Gondsmen · HP 11',
+              'Weak':        '4 Gondsmen · HP 11',
+              'Average':     '6 Gondsmen · HP 11',
+              'Strong':      '8 Gondsmen · HP 11',
+              'Very Strong': '8 Gondsmen · HP 18 · dmg 5 (1d8+1)',
+            }},
+            { slideId: 'enc4', name: 'Enc 4: Temple Chaos', tiers: {
+              'Very Weak':   'Blights ×3 (HP 9) · Bolters ×1 (HP 11)',
+              'Weak':        'Blights ×3 (HP 9) · Bolters ×1 (HP 11)',
+              'Average':     'Blights ×4 (HP 9) · Bolters ×2 (HP 11)',
+              'Strong':      'Blights ×6 (HP 9) · Bolters ×3 (HP 11)',
+              'Very Strong': 'Blights ×8 + Chaos Slasher · Bolters ×3 (HP 18)',
+            }},
+          ]
+        };
+
         const CAMPAIGN_DATA = {
           slides: [
             {
@@ -477,7 +512,7 @@
             },
             {
               id: 'enc1', title: 'Enc 1: Caltrops Fight', type: 'combat', time: '8:00 PM',
-              enemies: [{name:'Caltrop Swarm', count:5, hp:22, ac:14, speed:'0ft, fly 30ft', attacks:['Cloud of Pain: +4, reach 0ft, 5 (2d4) piercing; 2 (1d4) if below half HP'], traits:['Damage Resist: bludg/pierc/slash','Blindsight 10ft','Antimagic Susceptibility']}],
+              enemies: [{name:'Caltrop Swarm', count:5, hp:22, ac:14, speed:'0ft, fly 30ft', attacks:['Cloud of Pain: +4, reach 0ft, 5 (2d4) piercing; 2 (1d4) if below half HP'], traits:['Damage Resist: bludg/pierc/slash','Blindsight 10ft','Antimagic Susceptibility'], countByTier:{'Very Weak':3,'Weak':3,'Average':3,'Strong':5,'Very Strong':5}, hpByTier:{'Very Weak':15,'Weak':15}}],
               description: 'The clock strikes 8 bells and a scream rings out. C1e7i5 has killed a dockworker and left animated caltrops as a trap. The modron watches from the rooftop.',
               readAloud: [
                 {label: '8 Bells Chime - The Scream', text: 'The elaborate mechanical clock tower near the temple of Gond is audible from most places in the city. Right on cue, it begins to chime eight bells. As the final peal fades into silence, you hear a scream from the opposite side of the street.'},
@@ -622,7 +657,7 @@
             },
             {
               id: 'enc3', title: 'Enc 3: Save Boltac', type: 'combat', time: '9:00 PM',
-              enemies: [{name:'Gondsman', count:8, hp:22, ac:13, speed:'30ft', attacks:['Slam: +3, 5ft, 4 (1d6+1) bludgeoning'], traits:['Resist non-adamantine bludg/pierc/slash','Immune: poison, psychic','Blindsight 30ft','Athletics +6']}, {name:'C1e7i5', count:1, hp:49, ac:16, speed:'30ft, fly 30ft', attacks:['See C1e7i5 Assassin Strike mechanic below'], traits:['Truesight 120ft','Init 20 (loses ties)']}],
+              enemies: [{name:'Gondsman', count:8, hp:11, ac:13, speed:'30ft', attacks:['Slam: +3, 5ft, 4 (1d6+1) bludgeoning'], traits:['Resist non-adamantine bludg/pierc/slash','Immune: poison, psychic','Blindsight 30ft','Athletics +6'], countByTier:{'Very Weak':4,'Weak':4,'Average':6,'Strong':8,'Very Strong':8}, hpByTier:{'Very Strong':18}}, {name:'C1e7i5', count:1, hp:49, ac:16, speed:'30ft, fly 30ft', attacks:['See C1e7i5 Assassin Strike mechanic below'], traits:['Truesight 120ft','Init 20 (loses ties)']}],
               npcs: [{name:'Boltac', hp:22, ac:13}],
               description: 'C1e7i5 takes control of a gnomish tinkerer\'s Gondsmen constructs to attack Boltac while preparing a crossbow shot. The characters must protect the dwarf and fight the constructs.',
               readAloud: [
@@ -743,8 +778,9 @@
             },
             {
               id: 'travel2', title: 'Travel to Temple', type: 'narrative', time: '9:30 PM',
-              description: 'The characters travel to the Temple of Loviatar. They must decide how to approach: present themselves diplomatically or set up outside. C1e7i5 is ALREADY INSIDE the temple.',
+              description: 'The four characters race toward the Temple of Loviatar. Drake stays behind — his wounds from the crossbow bolt are too severe to keep pace. C1e7i5 is ALREADY INSIDE the temple.',
               readAloud: [
+                {label: 'Drake Stays Behind (Session 2 opener)', text: 'Drake slows to a stop, one hand pressed to the wound in his arm where the bolt struck. His breathing is labored. "Go," he grits through his teeth. "I\'ll... I\'ll catch up. Someone needs to make sure Boltac and Elly get word to the Watch anyway." He doesn\'t wait for an argument — he\'s already limping back toward the marketplace.', conditional: true},
                 {label: 'Temple Exterior', text: 'The temple is a two-story stone building, larger and wider than the more ramshackle structures on either side of it, but not otherwise out of place in the district. Apart from a few statues and a holy symbol over the door, there\'s not much here to suggest the presence of a place of worship.'},
                 {label: 'About the Temple of Loviatar', text: 'This might be due to some of the misunderstandings that commoners, especially sailors, tend to have about the teachings of Loviatar. From here you can see the glow of the lighthouse all the way down at the other end of the docks.'},
                 {label: 'The Closed Door', text: 'The door is closed, although a bit of light escapes from within through the narrow glass windows. It does not appear that the temple is open to supplicants at this late hour, but neither does the building seem to be uninhabited.'}
@@ -765,6 +801,9 @@
                 ]}
               ],
               dmTips: [
+                'SESSION 2 OPENER: Read the orange "conditional" block above as narration. Drake (Warlock) stays behind at the marketplace with Boltac and Elly to wait for the Watch.',
+                'Party for Session 2 is 4 players: Caleb (Paladin), Tav (Monk), Gardak (Ranger), Krisys (Sorcerer). Drake (Warlock) and Save (Barbarian) as absent on the intro slide.',
+                '⚠️ ENCOUNTER SCALING: 4 players = WEAK party (base is 5 players). Enc 4: use 3 Chaos Blights and 1 Chaos Bolter (not 6/3). Base bolter HP is 11 not 18. See the Encounter Calculator in the sidebar.',
                 'Zellani is a priestess of LOVIATAR (goddess of pain). She\'s not easily scared and considers herself above ordinary folk.',
                 'The City Watch\'s authority does NOT extend to entering temples whenever they want - Zellani correctly points this out even if they show the writ.',
                 'If the characters are inside when the attack begins, they have a better starting position. If outside, they must break in first (losing precious time).',
@@ -772,7 +811,8 @@
               ],
               faq: [
                 { q: 'Can they search the temple for the assassin?', a: '"Let us search the temple" will NOT make Zellani happy. The best they can hope for is offering to guard her. She will not let them roam freely.' },
-                { q: 'Who is Loviatar?', a: 'Loviatar is the "Maiden of Pain" - a lawful evil goddess whose followers believe pain and torment are divine gifts. The temple is one of the largest in Melvaunt. Zellani can summon devils bound to Loviatar for defense.' }
+                { q: 'Who is Loviatar?', a: 'Loviatar is the "Maiden of Pain" - a lawful evil goddess whose followers believe pain and torment are divine gifts. The temple is one of the largest in Melvaunt. Zellani can summon devils bound to Loviatar for defense.' },
+                { q: 'What do players know from Session 1?', a: 'Boltac survived (Drake took the crossbow bolt). Puzzle 2 solved: TEMPLE OF LOVIATAR - TEN HOURS - HALF ELF. Sorcerer alerted watchmen along the route. The city guard is behind them. Drake stayed at the marketplace.' }
               ]
             },
             {
@@ -842,12 +882,19 @@
             },
             {
               id: 'enc4', title: 'Enc 4: Temple Chaos', type: 'combat', time: '10:00 PM',
-              enemies: [{name:'Chaos Blight', count:6, hp:9, ac:12, speed:'20ft', attacks:['Claws: +3, 5ft, 3 (1d4+1) piercing'], traits:['Blindsight 60ft']}, {name:'Chaos Bolter', count:3, hp:18, ac:13, speed:'30ft', attacks:['Claws: +3, 5ft, 6 (1d4+1) piercing','Chaotic Bolt: +3, 30/60ft, 8 (2d6+1) random energy (d6: acid/cold/fire/lightning/poison/thunder)'], traits:['Blindsight 60ft']}, {name:'C1e7i5', count:1, hp:49, ac:16, speed:'30ft, fly 30ft', attacks:['See Skylight Moment mechanic below'], traits:['Truesight 120ft','Init 20 (loses ties)']}],
+              enemies: [{name:'Chaos Blight', count:6, hp:9, ac:12, speed:'20ft', attacks:['Claws: +3, 5ft, 3 (1d4+1) piercing'], traits:['Blindsight 60ft'], countByTier:{'Very Weak':3,'Weak':3,'Average':4,'Strong':6,'Very Strong':8}}, {name:'Chaos Bolter', count:3, hp:11, ac:13, speed:'30ft', attacks:['Claws: +3, 5ft, 6 (1d4+1) piercing','Chaotic Bolt: +3, 30/60ft, 8 (2d6+1) random energy (d6: acid/cold/fire/lightning/poison/thunder)'], traits:['Blindsight 60ft'], countByTier:{'Very Weak':1,'Weak':1,'Average':2,'Strong':3,'Very Strong':3}, hpByTier:{'Very Strong':18}}, {name:'C1e7i5', count:1, hp:49, ac:16, speed:'30ft, fly 30ft', attacks:['See Skylight Moment mechanic below'], traits:['Truesight 120ft','Init 20 (loses ties)']}],
               npcs: [{name:'Zellani', hp:25, ac:13}],
+              neutrals: [
+                {name:'Lemure #1', hp:13, ac:7, speed:'15ft', attacks:['Fist: +3, 5ft, 5 (2d4) bludgeoning'], traits:['Immune: fire, poison','Resist: cold','Devil\'s Sight','Note: attacks chaos creatures first']},
+                {name:'Lemure #2', hp:13, ac:7, speed:'15ft', attacks:['Fist: +3, 5ft, 5 (2d4) bludgeoning'], traits:['Immune: fire, poison','Resist: cold','Devil\'s Sight','Note: attacks chaos creatures first']},
+                {name:'Imp', hp:10, ac:13, speed:'20ft / fly 40ft', attacks:['Sting: +5, 5ft, 5 (1d4+3) piercing + DC 11 Con or 10 (3d6) poison'], traits:['Magic Resistance','Devil\'s Sight','Invisibility (recharge after atk)','Shapechanger','Note: fights independently — may turn on party if chaos creatures die']},
+              ],
               description: 'C1e7i5 summons chaos creatures through planar rifts. Zellani summons devils to defend the temple. The characters fight chaos creatures while devils fight independently. After the creatures are defeated, C1e7i5 crashes through the skylight for a dramatic confrontation.',
               readAloud: [
                 {label: 'IF PLAYERS ARE OUTSIDE at 10 Bells', text: '(If OUTSIDE) The clock tower chimes the hour, predictable and steady as always. Sure enough, as the last bell fades away, you hear the sound of breaking glass and shouts of battle from inside the temple.', conditional: true},
                 {label: 'IF PLAYERS ARE INSIDE at 10 Bells', text: '(If INSIDE) As the last of ten chimes fades away, you brace for the inevitable attack. The priestess looks up in surprise as thin strips of yellow light appear in the air, as if someone were slicing through the very fabric of reality. Swirling motes of chaotic energy burst through the rifts, followed by stick-like figures whose shapes twist and waver, constantly changing form.', conditional: true},
+                {label: 'Chaos Blights — First Sight', text: 'The smaller creatures move in a low, frantic scuttle — hunched, skeletal things no larger than a child, with too many clawed limbs that seem to multiply and vanish as they shift. Their matte-black skin is cracked through with veins of swirling colour, every shade wrong and changing. They have no mouths. Where eyes should be, there are only hollow pits that pulse with faint, sickly light.', conditional: true},
+                {label: 'Chaos Bolters — First Sight', text: 'The taller ones stand upright on twig-like legs, angular and wrong-proportioned, joints sparking where their limbs meet. One arm hangs limp; the other ends not in a hand but in a warped, fleshy aperture that seethes with coiling energy — crackling blue, then orange, then the sick green of poison. A single eye sits in the centre of a hollow, pitted face, tracking you with cold, alien focus.', conditional: true},
                 {label: 'Zellani Summons Devils (both paths)', text: '"You dare invade the sanctum of Loviatar?" shouts Zellani. "I call upon the servitors of the Maiden of Pain to taste the delicious agony of your suffering!" She gestures, and flashes of light herald the arrival of devils throughout the temple.'}
               ],
               mechanics: [
@@ -1013,23 +1060,36 @@
           const [showCombat, setShowCombat] = useState(false);
           const [portalRoll, setPortalRoll] = useState(null);
           const [initiative, setInitiative] = useState(saved?.initiative || { entries: [], currentIndex: -1, round: 0, sorted: false });
-          const defaultPlayers = { Paladin: '', Monk: '', Ranger: '', Warlock: '', Sorcerer: '', Barbarian: '' };
+          const defaultPlayers = { Paladin: 'Caleb', Monk: 'Tav', Ranger: 'Gardak', Warlock: 'Drake', Sorcerer: 'Krisys', Barbarian: 'Dave' };
           const [players, setPlayers] = useState(saved?.players || defaultPlayers);
+          const [absentClasses, setAbsentClasses] = useState(saved?.absentClasses || []);
 
           const current = CAMPAIGN_DATA.slides[slide];
 
+          const activeCount = Object.keys(players).filter(cls => !absentClasses.includes(cls)).length;
+          const currentTier = ENCOUNTER_SCALING.tierFor(activeCount);
+          const effectiveEnemy = (enemy) => ({
+            count: enemy.countByTier?.[currentTier] ?? enemy.count,
+            hp: enemy.hpByTier?.[currentTier] ?? enemy.hp,
+          });
+
+          const toggleAbsent = (cls) => {
+            setAbsentClasses(prev => prev.includes(cls) ? prev.filter(c => c !== cls) : [...prev, cls]);
+          };
+
           // Auto-save all tracked state whenever it changes
           useEffect(() => {
-            saveState({ slide, hp, notes, initiative, players });
-          }, [slide, hp, notes, initiative, players]);
+            saveState({ slide, hp, notes, initiative, players, absentClasses });
+          }, [slide, hp, notes, initiative, players, absentClasses]);
 
           useEffect(() => {
             if (current.type === 'combat') {
               const newHp = {};
               current.enemies?.forEach(e => {
-                for(let i=1; i<=e.count; i++) {
+                const { count, hp: baseHp } = effectiveEnemy(e);
+                for(let i=1; i<=count; i++) {
                   const key = `${e.name}-${i}`;
-                  if (!hp[key]) newHp[key] = e.hp;
+                  if (!hp[key]) newHp[key] = baseHp;
                 }
               });
               current.npcs?.forEach(n => {
@@ -1046,7 +1106,7 @@
                 // Only populate if empty for this slide
                 if (prev.entries.length > 0) return prev;
                 const entries = [];
-                const classes = ['Paladin', 'Monk', 'Ranger', 'Warlock', 'Sorcerer', 'Barbarian'];
+                const classes = ['Paladin', 'Monk', 'Ranger', 'Warlock', 'Sorcerer', 'Barbarian'].filter(cls => !absentClasses.includes(cls));
                 classes.forEach(cls => {
                   const displayName = players[cls] ? `${players[cls]} (${cls})` : cls;
                   entries.push({ id: `player-${cls}`, name: displayName, init: 0, isPlayer: true, isNPC: false });
@@ -1091,6 +1151,7 @@
               setShowCombat(false);
               setInitiative({ entries: [], currentIndex: -1, round: 0, sorted: false });
               setPlayers(defaultPlayers);
+              setAbsentClasses([]);
             }
           };
 
@@ -1112,19 +1173,32 @@
                   <div className="bg-slate-950/50 p-5 rounded-lg border border-amber-600/30">
                     <h3 className="text-lg font-semibold text-amber-400 mb-3 font-display">Setup</h3>
                     <div className="grid grid-cols-2 gap-x-4 gap-y-2 mb-3">
-                      {Object.keys(players).map(cls => (
-                        <div key={cls} className="flex items-center gap-2">
-                          <span className="text-amber-400 text-xs font-semibold w-16 shrink-0">{cls}</span>
-                          <input
-                            type="text"
-                            placeholder="Name"
-                            value={players[cls]}
-                            onChange={e => setPlayers(prev => ({...prev, [cls]: e.target.value}))}
-                            className="bg-slate-900/60 border border-amber-600/30 rounded px-2 py-1 text-xs text-amber-100 placeholder-amber-100/30 w-full focus:outline-none focus:border-amber-500/60"
-                          />
-                        </div>
-                      ))}
+                      {Object.keys(players).map(cls => {
+                        const absent = absentClasses.includes(cls);
+                        return (
+                          <div key={cls} className={`flex items-center gap-1.5 ${absent ? 'opacity-40' : ''}`}>
+                            <button
+                              onClick={() => toggleAbsent(cls)}
+                              title={absent ? 'Mark as present' : 'Mark as absent'}
+                              className={`flex-shrink-0 w-5 h-5 rounded border-2 flex items-center justify-center text-xs transition-colors ${
+                                absent ? 'border-slate-600 bg-slate-800 text-slate-500' : 'border-green-500 bg-green-900/60 text-green-300'
+                              }`}
+                            >
+                              {absent ? '–' : '✓'}
+                            </button>
+                            <span className={`text-xs font-semibold w-16 shrink-0 ${absent ? 'text-slate-500' : 'text-amber-400'}`}>{cls}</span>
+                            <input
+                              type="text"
+                              placeholder="Name"
+                              value={players[cls]}
+                              onChange={e => setPlayers(prev => ({...prev, [cls]: e.target.value}))}
+                              className="bg-slate-900/60 border border-amber-600/30 rounded px-2 py-1 text-xs text-amber-100 placeholder-amber-100/30 w-full focus:outline-none focus:border-amber-500/60"
+                            />
+                          </div>
+                        );
+                      })}
                     </div>
+                    <p className="text-amber-100/50 text-xs mb-3">✓ = present this session &nbsp;|&nbsp; – = absent (excluded from initiative)</p>
                     <ul className="space-y-2 text-sm">
                       <li className="text-amber-100/90">Level 1 - Strong Party</li>
                       <li className="text-amber-100/90">Duration: 3-4 hours</li>
@@ -1262,16 +1336,32 @@
                 backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4z' fill='%23fff'/%3E%3C/svg%3E")`
               }}/>
 
-              <header className="relative border-b-2 border-amber-600 bg-slate-950/90 backdrop-blur">
-                <div className="container mx-auto px-6 py-6">
+              <header className="sticky top-0 z-50 border-b-2 border-amber-600 bg-slate-950/90 backdrop-blur">
+                <div className="container mx-auto px-6 py-4">
                   <div className="flex justify-between items-center">
                     <div>
                       <h1 className="text-4xl font-bold text-amber-400 font-display">A Scream in the Night</h1>
                       <p className="text-amber-300/70 text-sm mt-1">DM Companion &bull; Slide {slide+1} of {CAMPAIGN_DATA.slides.length}</p>
                     </div>
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => { setSlide(s => Math.max(0, s-1)); setShowCombat(false); }}
+                        disabled={slide === 0}
+                        className="px-3 py-2 bg-amber-900/50 hover:bg-amber-900/70 disabled:bg-slate-800/50 disabled:text-slate-600 rounded-lg border-2 border-amber-600/50 disabled:border-slate-700 transition-all font-semibold flex items-center gap-1 text-sm"
+                      >
+                        <Icon d="m15 18-6-6 6-6"/>
+                        Prev
+                      </button>
+                      <button
+                        onClick={() => { setSlide(s => Math.min(CAMPAIGN_DATA.slides.length-1, s+1)); setShowCombat(false); }}
+                        disabled={slide === CAMPAIGN_DATA.slides.length-1}
+                        className="px-3 py-2 bg-amber-900/50 hover:bg-amber-900/70 disabled:bg-slate-800/50 disabled:text-slate-600 rounded-lg border-2 border-amber-600/50 disabled:border-slate-700 transition-all font-semibold flex items-center gap-1 text-sm"
+                      >
+                        Next
+                        <Icon d="m9 18 6-6-6-6"/>
+                      </button>
                       {current.time && (
-                        <div className="bg-purple-900/60 px-5 py-2 rounded-lg border border-purple-500/40 flex items-center gap-2">
+                        <div className="bg-purple-900/60 px-4 py-2 rounded-lg border border-purple-500/40 flex items-center gap-2">
                           <Icon d="M12 2v4m0 12v4m8.66-14.66l-2.83 2.83M6.17 17.83l-2.83 2.83M22 12h-4M6 12H2m16.66 6.66l-2.83-2.83M6.17 6.17L3.34 3.34"/>
                           <span className="text-purple-200 font-semibold">{current.time}</span>
                         </div>
@@ -1359,9 +1449,10 @@
                                     Enemies
                                   </h3>
                                   {current.enemies.map(enemy => {
-                                    const creatures = Array.from({length: enemy.count}, (_, i) => ({
+                                    const { count: effCount, hp: effHp } = effectiveEnemy(enemy);
+                                    const creatures = Array.from({length: effCount}, (_, i) => ({
                                       key: `${enemy.name}-${i+1}`,
-                                      name: enemy.count > 1 ? `${enemy.name} #${i+1}` : enemy.name
+                                      name: effCount > 1 ? `${enemy.name} #${i+1}` : enemy.name
                                     }));
 
                                     return (
@@ -1369,7 +1460,7 @@
                                         <h4 className="text-red-300 font-semibold mb-2">{enemy.name}</h4>
                                         <div className="grid grid-cols-2 gap-2 text-xs text-red-200/80 mb-2">
                                           <span>AC: {enemy.ac}</span>
-                                          <span>HP: {enemy.hp}</span>
+                                          <span>HP: {effHp}</span>
                                         </div>
                                         {enemy.speed && (
                                           <div className="text-xs text-red-200/60 mb-2">Speed: {enemy.speed}</div>
@@ -1389,23 +1480,23 @@
                                           </div>
                                         )}
                                         {creatures.map(({key, name}) => {
-                                          const currentHp = hp[key] || enemy.hp;
-                                          const pct = (currentHp / enemy.hp) * 100;
+                                          const currentHp = hp[key] !== undefined ? hp[key] : effHp;
+                                          const pct = (currentHp / effHp) * 100;
                                           return (
                                             <div key={key} className="bg-slate-950/50 p-2 rounded mb-2">
                                               <div className="flex justify-between mb-1">
                                                 <span className="text-red-200 text-sm">{name}</span>
                                               </div>
                                               <div className="flex items-center gap-2 mb-1">
-                                                <button onClick={() => updateHp(key, -5, enemy.hp)} className="bg-red-700 hover:bg-red-600 px-2 py-1 rounded text-xs">-5</button>
-                                                <button onClick={() => updateHp(key, -1, enemy.hp)} className="bg-red-600 hover:bg-red-500 px-2 py-1 rounded text-xs">-1</button>
+                                                <button onClick={() => updateHp(key, -5, effHp)} className="bg-red-700 hover:bg-red-600 px-2 py-1 rounded text-xs">-5</button>
+                                                <button onClick={() => updateHp(key, -1, effHp)} className="bg-red-600 hover:bg-red-500 px-2 py-1 rounded text-xs">-1</button>
                                                 <div className="flex-1 text-center">
                                                   <span className={`font-bold text-sm ${pct === 0 ? 'text-red-400 line-through' : pct <= 50 ? 'text-yellow-400' : 'text-red-200'}`}>
-                                                    {currentHp}/{enemy.hp}
+                                                    {currentHp}/{effHp}
                                                   </span>
                                                 </div>
-                                                <button onClick={() => updateHp(key, 1, enemy.hp)} className="bg-green-600 hover:bg-green-500 px-2 py-1 rounded text-xs">+1</button>
-                                                <button onClick={() => updateHp(key, 5, enemy.hp)} className="bg-green-700 hover:bg-green-600 px-2 py-1 rounded text-xs">+5</button>
+                                                <button onClick={() => updateHp(key, 1, effHp)} className="bg-green-600 hover:bg-green-500 px-2 py-1 rounded text-xs">+1</button>
+                                                <button onClick={() => updateHp(key, 5, effHp)} className="bg-green-700 hover:bg-green-600 px-2 py-1 rounded text-xs">+5</button>
                                               </div>
                                               <div className="w-full bg-slate-800 rounded-full h-1.5">
                                                 <div className={`h-1.5 rounded-full transition-all ${pct === 0 ? 'bg-red-600' : pct <= 50 ? 'bg-yellow-500' : 'bg-red-500'}`} style={{width: `${pct}%`}}/>
@@ -1416,6 +1507,23 @@
                                       </div>
                                     );
                                   })}
+                                </div>
+                              )}
+
+                              {current.neutrals && (
+                                <div className="mt-3 bg-yellow-950/20 border border-yellow-600/30 rounded-lg p-3">
+                                  <h3 className="text-sm font-semibold text-yellow-400 mb-2 uppercase tracking-wider">Background: Zellani's Devils</h3>
+                                  <p className="text-yellow-200/60 text-xs mb-2">Fight chaos creatures cinematically — only track via fly-by mechanic below.</p>
+                                  <div className="flex flex-wrap gap-2 mb-2">
+                                    {current.neutrals.map(neu => (
+                                      <span key={neu.name} className="text-xs bg-yellow-900/30 border border-yellow-700/30 text-yellow-300/80 rounded px-2 py-1">
+                                        {neu.name} · AC {neu.ac} · HP {neu.hp}
+                                      </span>
+                                    ))}
+                                  </div>
+                                  {current.neutrals.map(neu => neu.attacks?.map((atk, j) => (
+                                    <div key={`${neu.name}-${j}`} className="text-xs text-yellow-100/70 font-mono mb-0.5">⚔ {neu.name}: {atk}</div>
+                                  )))}
                                 </div>
                               )}
                             </div>
@@ -1453,27 +1561,54 @@
                       {renderSlideContent()}
                     </div>
 
-                    <div className="flex justify-between mt-6">
-                      <button
-                        onClick={() => { setSlide(s => Math.max(0, s-1)); setShowCombat(false); }}
-                        disabled={slide === 0}
-                        className="px-6 py-3 bg-amber-900/50 hover:bg-amber-900/70 disabled:bg-slate-800/50 disabled:text-slate-600 rounded-lg border-2 border-amber-600/50 disabled:border-slate-700 transition-all font-semibold flex items-center gap-2"
-                      >
-                        <Icon d="m15 18-6-6 6-6"/>
-                        Previous
-                      </button>
-                      <button
-                        onClick={() => { setSlide(s => Math.min(CAMPAIGN_DATA.slides.length-1, s+1)); setShowCombat(false); }}
-                        disabled={slide === CAMPAIGN_DATA.slides.length-1}
-                        className="px-6 py-3 bg-amber-900/50 hover:bg-amber-900/70 disabled:bg-slate-800/50 disabled:text-slate-600 rounded-lg border-2 border-amber-600/50 disabled:border-slate-700 transition-all font-semibold flex items-center gap-2"
-                      >
-                        Next
-                        <Icon d="m9 18 6-6-6-6"/>
-                      </button>
-                    </div>
                   </div>
 
                   <div className="space-y-6">
+                    {/* Encounter Calculator */}
+                    {(() => {
+                      const activeCount = Object.keys(players).filter(cls => !absentClasses.includes(cls)).length;
+                      const tier = ENCOUNTER_SCALING.tierFor(activeCount);
+                      const style = ENCOUNTER_SCALING.tierStyle[tier];
+                      const currentEnc = ENCOUNTER_SCALING.encounters.find(e => e.slideId === current.id);
+                      return (
+                        <div className="bg-slate-950/80 backdrop-blur border-2 border-amber-600/40 rounded-lg p-4">
+                          <h3 className="text-lg font-bold text-amber-300 mb-3 flex items-center gap-2 font-display">
+                            <Icon d="M9 3H5a2 2 0 00-2 2v4m6-6h10a2 2 0 012 2v4M9 3v18m0 0h10a2 2 0 002-2V9M9 21H5a2 2 0 01-2-2V9m0 0h18"/>
+                            Encounter Calculator
+                          </h3>
+                          <div className={`${style.bg} border ${style.border} rounded-lg px-3 py-2 mb-3 flex items-center justify-between`}>
+                            <span className="text-amber-200/70 text-sm">{activeCount} active player{activeCount !== 1 ? 's' : ''}</span>
+                            <span className={`${style.text} font-bold text-sm uppercase tracking-wider`}>{tier}</span>
+                          </div>
+                          {currentEnc ? (
+                            <div className="mb-3">
+                              <p className="text-amber-300/70 text-xs uppercase tracking-wider mb-1">Current encounter</p>
+                              <div className={`${style.bg} border ${style.border} rounded-lg px-3 py-2`}>
+                                <p className="text-amber-200 text-xs font-semibold mb-0.5">{currentEnc.name}</p>
+                                <p className={`${style.text} text-sm font-mono`}>{currentEnc.tiers[tier]}</p>
+                              </div>
+                            </div>
+                          ) : (
+                            <p className="text-amber-100/40 text-xs italic mb-3">Not a scaled encounter</p>
+                          )}
+                          <details className="group">
+                            <summary className="text-amber-300/60 text-xs cursor-pointer hover:text-amber-300 select-none">All encounters ▸</summary>
+                            <div className="mt-2 space-y-2">
+                              {ENCOUNTER_SCALING.encounters.map(enc => {
+                                const encStyle = ENCOUNTER_SCALING.tierStyle[tier];
+                                return (
+                                  <div key={enc.slideId} className="bg-slate-900/60 rounded-lg px-3 py-2">
+                                    <p className="text-amber-200/80 text-xs font-semibold mb-0.5">{enc.name}</p>
+                                    <p className={`${encStyle.text} text-xs font-mono`}>{enc.tiers[tier]}</p>
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          </details>
+                        </div>
+                      );
+                    })()}
+
                     <div className="bg-slate-950/80 backdrop-blur border-2 border-purple-600/50 rounded-lg p-4">
                       <h3 className="text-xl font-bold text-purple-300 mb-4 flex items-center gap-2 font-display">
                         <Icon d="M12 2v4m0 12v4"/>
