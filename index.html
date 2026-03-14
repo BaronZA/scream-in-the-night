@@ -780,6 +780,7 @@
               id: 'travel2', title: 'Travel to Temple', type: 'narrative', time: '9:30 PM',
               description: 'The four characters race toward the Temple of Loviatar. Drake stays behind — his wounds from the crossbow bolt are too severe to keep pace. C1e7i5 is ALREADY INSIDE the temple.',
               readAloud: [
+                {label: 'Previously — Session 1 Recap (read at session start)', text: 'Last time, outside the Winking Narwhal, a drunken brawl broke out in the alley. Caleb stepped forward to break it up while Drake used prestidigitation as a distraction — and while nobody was looking, Krisys quietly lifted a coin purse from the chaos with mage hand. The brawlers scattered. Then the clock struck eight bells, and a scream cut through the night.\n\nYou found a dockworker face-down in an alley, a dagger buried to the hilt in his back. Caleb charged in and somehow avoided the scattered caltrops — the swarms came alive anyway. The creatures were brutally hard to hit at first, their chaos-binding making them resistant to almost everything. When each swarm was beaten below half, something gave way and they became easier to damage. You put them all down. Gardak found a folded note pinned under the dagger and passed it quietly to Drake.\n\nThen Sergeant Eledstra arrived with city guards — and Drake immediately hid the note. Tav cooperated openly with her and earned her trust. Drake tried to fake-hand over a different letter and got caught. Eledstra\'s opinion of him dropped sharply. Even so, the party\'s overall cooperation earned you two potions of healing, which went to Tav. You worked out the puzzle together — ADAMANTINE BLACKSMITH — and split from Eledstra, racing toward the marketplace.\n\nYou searched the market but the rolls were unkind. You only found Boltac\'s stall just as his own Gondsmen constructs animated around him. The first round they stood still — just long enough to close in. Boltac grabbed a weapon and fought alongside you. Drake made a bold call: he ran into the middle of four Gondsmen and unleashed Arms of Hadar. The resistance and saves meant most of the damage bounced — and the spell caught Elly and Tav in the blast too. Elly was furious and refused to heal Drake. Tav dropped to 1 HP before Elly brought him back to full. On the last Gondsman, the party pulled their punches and knocked it out non-lethally — that earned Elly back.\n\nThen, as the last construct fell, a crossbow bolt came from the rooftops — aimed at Boltac. Drake was standing right next to the dwarf. He took the bolt instead and dropped to zero. Caleb pulled him back from the edge. Elly, still irritated but not heartless, healed him further. Drake pulled the bolt free and handed it to Elly, who noticed the shaft was hollow. They snapped off the tip: inside was Puzzle 2. TEMPLE OF LOVIATAR. TEN HOURS. HALF ELF.\n\nYou shouted to Boltac and Elly to send word to the Watch. Krisys convinced the city guards along the route to relay the message ahead. And then you ran.', conditional: true},
                 {label: 'Drake Stays Behind (Session 2 opener)', text: 'Drake slows to a stop, one hand pressed to the wound in his arm where the bolt struck. His breathing is labored. "Go," he grits through his teeth. "I\'ll... I\'ll catch up. Someone needs to make sure Boltac and Elly get word to the Watch anyway." He doesn\'t wait for an argument — he\'s already limping back toward the marketplace.', conditional: true},
                 {label: 'Temple Exterior', text: 'The temple is a two-story stone building, larger and wider than the more ramshackle structures on either side of it, but not otherwise out of place in the district. Apart from a few statues and a holy symbol over the door, there\'s not much here to suggest the presence of a place of worship.'},
                 {label: 'About the Temple of Loviatar', text: 'This might be due to some of the misunderstandings that commoners, especially sailors, tend to have about the teachings of Loviatar. From here you can see the glow of the lighthouse all the way down at the other end of the docks.'},
@@ -818,6 +819,9 @@
             {
               id: 'roleplay', title: 'Convince Zellani', type: 'roleplay', time: '9:45 PM',
               description: 'Detailed roleplay encounter with Zellani. Getting her cooperation is important but the attack will happen regardless at 10 bells.',
+              readAloud: [
+                {label: 'Zellani Answers the Door', text: 'A metal slat in the centre of the door slides open, revealing the face of a half-elven female with jet-black hair. A deep scar mars one side of her otherwise beautiful face. "I\'m sorry," she says politely, "but the temple is not open for services at this hour. You can see our schedule posted on the notice boards to either side of the door."'}
+              ],
               roleplay: [
                 {
                   name: 'Zellani (ZELL-ah-nee)',
@@ -891,11 +895,14 @@
               ],
               description: 'C1e7i5 summons chaos creatures through planar rifts. Zellani summons devils to defend the temple. The characters fight chaos creatures while devils fight independently. After the creatures are defeated, C1e7i5 crashes through the skylight for a dramatic confrontation.',
               readAloud: [
-                {label: 'IF PLAYERS ARE OUTSIDE at 10 Bells', text: '(If OUTSIDE) The clock tower chimes the hour, predictable and steady as always. Sure enough, as the last bell fades away, you hear the sound of breaking glass and shouts of battle from inside the temple.', conditional: true},
-                {label: 'IF PLAYERS ARE INSIDE at 10 Bells', text: '(If INSIDE) As the last of ten chimes fades away, you brace for the inevitable attack. The priestess looks up in surprise as thin strips of yellow light appear in the air, as if someone were slicing through the very fabric of reality. Swirling motes of chaotic energy burst through the rifts, followed by stick-like figures whose shapes twist and waver, constantly changing form.', conditional: true},
+                {label: 'IF PLAYERS ARE OUTSIDE at 10 Bells', text: 'The clock tower chimes the hour, predictable and steady as always. Just like your adversary, who has been nothing if not consistent. Sure enough, as the last bell fades away, you hear the sound of breaking glass and shouts of battle from inside the temple.', conditional: true},
+                {label: 'IF PLAYERS ARE INSIDE at 10 Bells', text: 'As the last of ten chimes fades away, you brace for the inevitable attack. Your adversary has been nothing if not consistent. The priestess looks up in surprise as a faint scratching sound begins to echo around the sanctuary. "What\'s that? Who\'s there?" Thin strips of yellow light appear in the air, as if someone — or something — were slicing through the very fabric of reality with a sharp knife. Swirling motes of chaotic energy burst through the rifts, followed by stick-like figures whose shapes twist and waver, constantly changing form. Even their shadows don\'t stay still, writhing and stretching across the floor.', conditional: true},
                 {label: 'Chaos Blights — First Sight', text: 'The smaller creatures move in a low, frantic scuttle — hunched, skeletal things no larger than a child, with too many clawed limbs that seem to multiply and vanish as they shift. Their matte-black skin is cracked through with veins of swirling colour, every shade wrong and changing. They have no mouths. Where eyes should be, there are only hollow pits that pulse with faint, sickly light.', conditional: true},
                 {label: 'Chaos Bolters — First Sight', text: 'The taller ones stand upright on twig-like legs, angular and wrong-proportioned, joints sparking where their limbs meet. One arm hangs limp; the other ends not in a hand but in a warped, fleshy aperture that seethes with coiling energy — crackling blue, then orange, then the sick green of poison. A single eye sits in the centre of a hollow, pitted face, tracking you with cold, alien focus.', conditional: true},
-                {label: 'Zellani Summons Devils (both paths)', text: '"You dare invade the sanctum of Loviatar?" shouts Zellani. "I call upon the servitors of the Maiden of Pain to taste the delicious agony of your suffering!" She gestures, and flashes of light herald the arrival of devils throughout the temple.'}
+                {label: 'Zellani Summons Devils (both paths)', text: '"You dare invade the sanctum of Loviatar? You may think me defenseless, but I am not!" shouts Zellani. "I call upon the servitors of the Maiden of Pain to taste the delicious agony of your suffering!" She gestures, and more flashes of light herald the arrival of a number of devils throughout the temple.'},
+                {label: 'Skylight Moment — After Last Chaos Creature Falls', text: 'As the final chaos creature dissolves into a puddle of swirling colour, the priestess looks around triumphantly. "You see!" she shouts at the heavens. "You thought to bring me death and instead I have brought you exquisite pain. Now show yourself and feel the sting of my whip!" From above the altar, a quiet voice whispers two words: "Very well." The glass skylight that arches over the sanctuary shatters. A rain of broken glass cascades down upon you. Zellani cries out in pain and drops to one knee — a massive shard has impaled her shoulder. Floating above you in the wreckage of the once-beautiful window is a spindly, cloaked figure. You cannot make out its face or features, but its arms and legs are very thin. It carries a bow, nocked with a single black arrow, aimed at the heart of the priestess of Loviatar.'},
+                {label: 'If Zellani is SAVED', text: 'The cloaked figure recoils from the strength of your attacks, its aim ruined. The black arrow skips harmlessly off the marble floor. The assassin flies back up out into the night sky through the broken skylight, but its movement is slow. Through clenched teeth, the priestess says: "Door… to the roof. Behind the curtain. Hurry. Get that bastard for me."', conditional: true},
+                {label: 'If Zellani DIES', text: 'Your attacks bounce harmlessly off the cloaked figure\'s defences. The black arrow flies straight and true, taking the priestess in the side. As she slumps to the marble floor, her blood spreading across the altar of the Maiden of Pain, she gasps her final words: "Door… to the roof. Behind the curtain. Get that bastard… for… me." Her body goes limp. The assassin lazily spirals back toward the night sky through the shattered skylight.', conditional: true}
               ],
               mechanics: [
                 { title: 'Chaos Creatures Tactics', details: 'Uncontrollable - attack recklessly without coordination. C1e7i5 makes no attempt to control them.' },
@@ -905,13 +912,13 @@
                 { title: 'Zellani\'s Stats', details: 'AC 13, HP 25, Speed 30ft. Melee: thorn whip +4, reach 5-10ft, 7 (2d4+2) damage. Ranged: sacred flame cantrip, DC 12, 1d8 radiant. Keep her positioned near the altar (under the skylight) for the dramatic moment.' },
                 { title: 'Encounter Scaling (Strong Party)', details: 'Already set: 3 chaos bolters, 6 chaos blights. Very Strong: add 2 more chaos blights (8 total), add a chaos slasher, increase bolter HP from 11 to 18.' },
                 { title: 'SAVING ZELLANI - The Skylight Moment', details: 'After all chaos creatures are defeated, C1e7i5 crashes through the glass skylight above the altar! It hovers 30ft up (out of melee range) aiming a black arrow at Zellani. Each character gets ONE ACTION.' },
-                { title: 'Damage Target to Save Zellani', details: 'For your party (6 characters, APL 1): must deal 4 x 6 = 24 total damage in one round against AC 16. A character who shields Zellani instead of attacking counts as 10 damage toward the target.' },
+                { title: 'Damage Target to Save Zellani', details: '⚔ TARGET: 4 × [active players] = [ZELLANI_DMG] damage in ONE round vs AC 16. Shielding Zellani counts as 10 damage toward the target.', zellaniFn: true },
                 { title: 'If Zellani is Saved', details: 'C1e7i5\'s aim is ruined. The black arrow skips off the marble floor. The assassin flies back through the broken skylight, moving slowly (injured). Zellani gasps: "Door... to the roof. Behind the curtain. Hurry. Get that bastard for me."' },
                 { title: 'If Zellani Dies', details: 'The black arrow takes her in the side. She slumps to the floor and gasps her final words: "Door... to the roof. Behind the curtain. Get that bastard... for... me." The assassin lazily spirals up through the skylight.' }
               ],
               choices: [
                 { situation: 'Saving Zellani from the skylight shot', options: [
-                  { option: 'Deal enough damage (24 total vs AC 16)', outcome: 'Zellani lives, grateful, gives reward' },
+                  { option: 'Deal enough damage (4×players total vs AC 16)', outcome: 'Zellani lives, grateful, gives reward' },
                   { option: 'Shield Zellani (counts as 10 damage toward threshold)', outcome: 'Sacrifice attack for guaranteed contribution' },
                   { option: 'Fail the damage threshold', outcome: 'Zellani dies. Still gives dying words pointing to roof' }
                 ]}
@@ -1060,7 +1067,7 @@
           const [showCombat, setShowCombat] = useState(false);
           const [portalRoll, setPortalRoll] = useState(null);
           const [initiative, setInitiative] = useState(saved?.initiative || { entries: [], currentIndex: -1, round: 0, sorted: false });
-          const defaultPlayers = { Paladin: 'Caleb', Monk: 'Tav', Ranger: 'Gardak', Warlock: 'Drake', Sorcerer: 'Krisys', Barbarian: 'Dave' };
+          const defaultPlayers = { Paladin: 'Caleb', Monk: 'Tav', Ranger: 'Gardak', Warlock: 'Drake', Sorcerer: 'Krisys', Barbarian: '' };
           const [players, setPlayers] = useState(saved?.players || defaultPlayers);
           const [absentClasses, setAbsentClasses] = useState(saved?.absentClasses || []);
 
@@ -1296,7 +1303,12 @@
               } else {
                 sections.push(
                   <Section key="mechanics" title="Key Mechanics & DCs" icon="⚔️" color="blue" defaultOpen={current.type === 'investigation' || current.type === 'skill-challenge'}>
-                    {current.mechanics.map((item, i) => <MechanicItem key={i} item={item} />)}
+                    {current.mechanics.map((item, i) => {
+                      const resolved = item.zellaniFn
+                        ? { ...item, details: item.details.replace('[ZELLANI_DMG]', `${4 * activeCount} (4×${activeCount})`) }
+                        : item;
+                      return <MechanicItem key={i} item={resolved} />;
+                    })}
                   </Section>
                 );
               }
