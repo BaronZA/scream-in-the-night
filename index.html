@@ -1023,12 +1023,13 @@
                 { title: 'XP: Combat Awards (divide by # characters)', details: 'Swarm of Animated Caltrops: 50 XP each. Lesser Gondsman: 25 XP each. Chaos Blight: 25 XP each. Chaos Bolter: 50 XP each. Chaos Slasher: 200 XP each.' },
                 { title: 'XP: Non-Combat Awards (per character)', details: 'Solving the "Blacksmith" puzzle: 25 XP. Solving the "Loviatar" puzzle: 25 XP. Chasing the modron to the portal: 50 XP.' },
                 { title: 'XP Range', details: 'Minimum: 225 XP per character. Maximum: 300 XP per character.' },
-                { title: 'Gold: Eledstra\'s Reward', details: '100 gp total (divided among party) for their service to the Watch.' },
-                { title: 'Gold: Zellani\'s Reward (if saved)', details: '100 gp total from the Temple of Loviatar.', requires: 'zellani' },
-                { title: 'Potion of Greater Healing', details: 'Uncommon potion, one per party. Heals 4d4+4 HP.' },
-                { title: 'Story Award: Chunk of Adamantine (if Boltac saved)', details: 'Each character gets raw adamantine ore. Can sell for 50 gp OR save to forge weapons. 1 chunk = dagger/light hammer/sickle. 2 = handaxe/shortsword/etc. 3 = longsword/battleaxe/etc. 4 = greatsword/greataxe/etc. Adamantine weapons bypass certain damage resistances.', requires: 'boltac' },
-                { title: 'Story Award: Favor of Zellani (if Zellani saved)', details: '25% discount on spellcasting services from the Temple of Loviatar. May also help in future Melvaunt adventures.', requires: 'zellani' },
-                { title: 'Council of Lords (if BOTH saved)', details: 'Two Points of Influence in Melvaunt. Their deeds have been brought to the attention of the ruling Council of Lords, whose three families are always looking for up-and-coming adventurers.', requires: 'both' },
+                { title: '✅ ALREADY OBTAINED: Stolen Coin Purse (Krisys)', details: '8 gp total — lifted from a drunken sailor during the brawl outside the Winking Narwhal. Already in Krisys\'s possession. No NPC interaction needed.' },
+                { title: 'Gold: Eledstra\'s Reward — 100 gp', details: 'NPC HANDOFF: Eledstra reaches into her coat and produces a sealed Watch pouch. She sets it on the table with a firm hand. "The City Watch pays its debts. You kept civilians alive tonight. That\'s worth something." She holds eye contact a beat longer than necessary — this is as warm as she gets. Split 100 gp evenly among the party.' },
+                { title: 'Gold: Zellani\'s Reward — 100 gp (if saved)', details: 'NPC HANDOFF: Zellani produces a heavy iron lockbox from behind the altar. She sets it down without ceremony and steps back. "Pain teaches gratitude. You kept me alive long enough to learn that lesson tonight." A thin, humorless smile. "The temple compensates those who serve Loviatar\'s faithful. Even accidentally." Split 100 gp evenly among the party.', requires: 'zellani' },
+                { title: 'Potion of Greater Healing — from Ellywicket', details: 'NPC HANDOFF: Elly produces a cobalt-blue vial from her apron pocket and holds it up to the light, peering at it critically. "One of mine — Gond\'s own recipe, double-brewed. Don\'t waste it on a papercut." She presses it into the nearest outstretched hand. "Consider it payment for not letting my Gondsmen turn Boltac into a puddle." One potion of greater healing (4d4+4 HP) for the party.' },
+                { title: 'Story Award: Chunk of Adamantine (if Boltac saved)', details: 'NPC HANDOFF: Boltac disappears into his workshop and returns carrying a lumpen ore wrapped in leather. He drops it on the counter with a heavy thunk. "Adamantine. Raw, mind you — needs proper working. But you saved my life so I\'m not charging you for the shaping either." He jabs a thick finger at each character. "One chunk each. Don\'t sell it. Have it forged into something worth carrying." Each character receives one chunk. Sell for 50 gp OR forge: 1 chunk = dagger/light hammer/sickle · 2 = handaxe/shortsword · 3 = longsword/battleaxe · 4 = greatsword/greataxe. Adamantine weapons bypass construct damage resistance.', requires: 'boltac' },
+                { title: 'Story Award: Favor of Zellani (if saved)', details: 'ONGOING BENEFIT: "If you have need of the temple\'s services in Melvaunt, present my name. You\'ll find the rates... agreeable." 25% discount on spellcasting services from the Temple of Loviatar. This may extend to future adventures in Melvaunt.', requires: 'zellani' },
+                { title: 'Council of Lords Recognition (if BOTH saved)', details: 'ONGOING BENEFIT: Eledstra mentions this quietly as she leaves: "I\'ll be filing my report tonight. Your names will be in it. The Council of Lords notices patterns — including the pattern of people who keep this city alive." Two Points of Influence in Melvaunt with the three ruling families.', requires: 'both' },
                 { title: 'Downtime', details: 'Each character receives 10 downtime days.' },
                 { title: 'Renown', details: 'All faction members earn 1 renown point.' }
               ],
@@ -1110,8 +1111,8 @@
           useEffect(() => {
             if (current.type === 'combat' || current.type === 'skill-challenge') {
               setInitiative(prev => {
-                // Only populate if empty for this slide
-                if (prev.entries.length > 0) return prev;
+                // Only populate if we haven't already done so for this specific slide
+                if (prev.slideId === current.id) return prev;
                 const entries = [];
                 const classes = ['Paladin', 'Monk', 'Ranger', 'Warlock', 'Sorcerer', 'Barbarian'].filter(cls => !absentClasses.includes(cls));
                 classes.forEach(cls => {
@@ -1124,17 +1125,18 @@
                 current.enemies?.forEach(e => {
                   // C1e7i5 acts on Initiative 20 (loses ties)
                   const initVal = e.name === 'C1e7i5' ? 20 : 0;
-                  if (e.count === 1) {
+                  const eff = effectiveEnemy(e);
+                  if (eff.count === 1) {
                     entries.push({ id: `enemy-${e.name}`, name: e.name, init: initVal, isPlayer: false, isNPC: false });
                   } else {
-                    entries.push({ id: `enemy-${e.name}-group`, name: `${e.name} (x${e.count})`, init: initVal, isPlayer: false, isNPC: false });
+                    entries.push({ id: `enemy-${e.name}-group`, name: `${e.name} (x${eff.count})`, init: initVal, isPlayer: false, isNPC: false });
                   }
                 });
-                return { entries, currentIndex: -1, round: 0, sorted: false };
+                return { entries, currentIndex: -1, round: 0, sorted: false, slideId: current.id };
               });
             } else {
               // Clear initiative when leaving combat/skill-challenge slides
-              setInitiative({ entries: [], currentIndex: -1, round: 0, sorted: false });
+              setInitiative({ entries: [], currentIndex: -1, round: 0, sorted: false, slideId: null });
             }
           }, [slide]);
 
